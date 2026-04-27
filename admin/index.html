@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Parafour — Admin Portal</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><circle cx='20' cy='20' r='20' fill='%232E7D32'/><text x='20' y='28' text-anchor='middle' fill='white' font-family='Inter,sans-serif' font-size='22' font-weight='800'>4</text></svg>" />
+  <style>
+    :root {
+      --green:      #2E7D32;
+      --green-dark: #1B5E20;
+      --green-mid:  #388E3C;
+      --dark:       #1A1A1A;
+      --dark-mid:   #2D2D2D;
+      --gray-bg:    #f4f6f9;
+      --gray-mid:   #e1e6ed;
+      --gray-text:  #5a6477;
+      --white:      #ffffff;
+      --accent:     #4CAF50;
+      --radius:     8px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--dark);
+      color: var(--white);
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: var(--dark);
+      border-bottom: 3px solid var(--green);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    .header-logo { width: 28px; height: 28px; flex-shrink: 0; }
+    .header-text h1 { font-size: .95rem; font-weight: 700; line-height: 1.2; }
+    .header-text p  { font-size: .65rem; color: #aaa; text-transform: uppercase; letter-spacing: .08em; }
+    .logout-btn {
+      background: transparent;
+      border: 1px solid #555;
+      color: #aaa;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: .78rem;
+      cursor: pointer;
+      transition: border-color .2s, color .2s;
+      white-space: nowrap;
+    }
+    .logout-btn:hover { border-color: var(--green); color: var(--accent); }
+
+    /* ── PIN Screen ── */
+    #pin-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: calc(100vh - 61px);
+      padding: 40px 24px;
+    }
+    .pin-box {
+      background: var(--dark-mid);
+      border: 1px solid #444;
+      border-radius: 16px;
+      padding: 36px 32px;
+      width: 100%;
+      max-width: 360px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+    }
+    .pin-box h2 { font-size: 1.25rem; font-weight: 700; text-align: center; }
+    .pin-box p  { font-size: .85rem; color: #aaa; text-align: center; margin-top: -16px; }
+    .pin-dots   { display: flex; gap: 14px; }
+    .pin-dot {
+      width: 18px; height: 18px; border-radius: 50%;
+      border: 2px solid #666; background: transparent;
+      transition: background .15s, border-color .15s;
+    }
+    .pin-dot.filled { background: var(--green); border-color: var(--green); }
+    .pin-error { color: #ff6b6b; font-size: .8rem; text-align: center; min-height: 20px; }
+    .numpad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      width: 100%;
+    }
+    .numpad-btn {
+      background: #3a3a3a;
+      border: none;
+      border-radius: 12px;
+      color: var(--white);
+      font-size: 1.4rem;
+      font-weight: 600;
+      padding: 18px 0;
+      cursor: pointer;
+      transition: background .15s, transform .1s;
+      touch-action: manipulation;
+      font-family: inherit;
+    }
+    .numpad-btn:active { background: var(--green); transform: scale(.95); }
+    .numpad-btn.del    { font-size: 1rem; background: #2a2a2a; }
+    .numpad-btn.del:active { background: #444; }
+    .numpad-btn.empty  { visibility: hidden; }
+
+    /* ── Admin Screen ── */
+    #admin-screen { display: none; }
+
+    .admin-wrap {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 32px 20px;
+    }
+    .admin-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .admin-header-row h2 { font-size: 1.3rem; font-weight: 700; }
+    .admin-header-row p  { font-size: .83rem; color: #888; margin-top: 4px; }
+
+    .phase-banner {
+      background: #1a2d1a;
+      border: 1px solid #2d5a2d;
+      border-radius: 12px;
+      padding: 32px;
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .phase-banner .phase-icon { font-size: 2.5rem; margin-bottom: 12px; }
+    .phase-banner h3 { font-size: 1.15rem; font-weight: 700; color: var(--accent); margin-bottom: 8px; }
+    .phase-banner p  { font-size: .9rem; color: #aaa; max-width: 520px; margin: 0 auto; line-height: 1.7; }
+
+    .admin-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+      gap: 16px;
+    }
+    .admin-card {
+      background: var(--dark-mid);
+      border: 1px solid #3a3a3a;
+      border-radius: 12px;
+      padding: 24px;
+    }
+    .admin-card h4  { font-size: .95rem; font-weight: 700; margin-bottom: 6px; }
+    .admin-card p   { font-size: .83rem; color: #888; margin: 0; line-height: 1.6; }
+    .admin-card .badge {
+      display: inline-block;
+      margin-top: 12px;
+      font-size: .7rem;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: #2a3a2a;
+      color: var(--accent);
+      border: 1px solid #2d5a2d;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── Header ── -->
+  <header class="header">
+    <div class="header-left">
+      <svg class="header-logo" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <circle cx="20" cy="20" r="20" fill="#2E7D32"/>
+        <text x="20" y="28" text-anchor="middle" fill="white" font-family="Inter,system-ui,sans-serif" font-size="22" font-weight="800">4</text>
+      </svg>
+      <div class="header-text">
+        <h1>Parafour Innovations</h1>
+        <p>Admin Portal</p>
+      </div>
+    </div>
+    <button class="logout-btn" id="logoutBtn" style="display:none;" onclick="logout()">Log Out</button>
+  </header>
+
+  <!-- ── PIN Screen ── -->
+  <div id="pin-screen">
+    <div class="pin-box">
+      <h2>Admin Access</h2>
+      <p>Enter your PIN to continue</p>
+      <div class="pin-dots" id="pinDots">
+        <div class="pin-dot" id="dot0"></div>
+        <div class="pin-dot" id="dot1"></div>
+        <div class="pin-dot" id="dot2"></div>
+        <div class="pin-dot" id="dot3"></div>
+      </div>
+      <div class="pin-error" id="pinError"></div>
+      <div class="numpad">
+        <button class="numpad-btn" onclick="pressKey('1')">1</button>
+        <button class="numpad-btn" onclick="pressKey('2')">2</button>
+        <button class="numpad-btn" onclick="pressKey('3')">3</button>
+        <button class="numpad-btn" onclick="pressKey('4')">4</button>
+        <button class="numpad-btn" onclick="pressKey('5')">5</button>
+        <button class="numpad-btn" onclick="pressKey('6')">6</button>
+        <button class="numpad-btn" onclick="pressKey('7')">7</button>
+        <button class="numpad-btn" onclick="pressKey('8')">8</button>
+        <button class="numpad-btn" onclick="pressKey('9')">9</button>
+        <button class="numpad-btn empty" disabled></button>
+        <button class="numpad-btn" onclick="pressKey('0')">0</button>
+        <button class="numpad-btn del" onclick="deleteKey()">⌫</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Admin Screen ── -->
+  <div id="admin-screen">
+    <div class="admin-wrap">
+
+      <div class="admin-header-row">
+        <div>
+          <h2>Admin Dashboard</h2>
+          <p>Parafour Innovations, LLC &nbsp;·&nbsp; Internal Portal</p>
+        </div>
+      </div>
+
+      <div class="phase-banner">
+        <div class="phase-icon">🚧</div>
+        <h3>Phase 2 — Coming Soon</h3>
+        <p>
+          Supabase integration is planned for Phase 2. Future admin features will include
+          lead management, quote request review, support ticket tracking, and documentation
+          management for the P4 Series.
+        </p>
+      </div>
+
+      <div class="admin-cards">
+
+        <div class="admin-card">
+          <h4>Quote Requests</h4>
+          <p>Manage inbound quote requests from the contact form. Requires HubSpot CRM integration.</p>
+          <span class="badge">Phase 2</span>
+        </div>
+
+        <div class="admin-card">
+          <h4>Support Tickets</h4>
+          <p>Track open support tickets and P4 Series technical inquiries.</p>
+          <span class="badge">Phase 2</span>
+        </div>
+
+        <div class="admin-card">
+          <h4>Documentation Library</h4>
+          <p>Manage and publish P4 Series manuals, wiring diagrams, and error code references.</p>
+          <span class="badge">Phase 2</span>
+        </div>
+
+        <div class="admin-card">
+          <h4>Analytics</h4>
+          <p>Site traffic, form submissions, and support page engagement metrics.</p>
+          <span class="badge">Phase 2</span>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const CORRECT_PIN = '9981';
+    let   entered     = '';
+
+    const pinScreen  = document.getElementById('pin-screen');
+    const adminScreen= document.getElementById('admin-screen');
+    const pinError   = document.getElementById('pinError');
+    const logoutBtn  = document.getElementById('logoutBtn');
+
+    function updateDots() {
+      for (let i = 0; i < 4; i++) {
+        document.getElementById('dot' + i).classList.toggle('filled', i < entered.length);
+      }
+    }
+
+    function pressKey(digit) {
+      if (entered.length >= 4) return;
+      entered += digit;
+      pinError.textContent = '';
+      updateDots();
+      if (entered.length === 4) {
+        setTimeout(checkPin, 180);
+      }
+    }
+
+    function deleteKey() {
+      if (entered.length === 0) return;
+      entered = entered.slice(0, -1);
+      pinError.textContent = '';
+      updateDots();
+    }
+
+    function checkPin() {
+      if (entered === CORRECT_PIN) {
+        pinScreen.style.display   = 'none';
+        adminScreen.style.display = 'block';
+        logoutBtn.style.display   = 'block';
+      } else {
+        pinError.textContent = 'Incorrect PIN — try again';
+        entered = '';
+        updateDots();
+        const dots = document.getElementById('pinDots');
+        dots.style.animation = 'none';
+        dots.offsetHeight;
+        dots.style.animation = 'shake .35s ease';
+      }
+    }
+
+    function logout() {
+      adminScreen.style.display = 'none';
+      pinScreen.style.display   = 'flex';
+      logoutBtn.style.display   = 'none';
+      entered = '';
+      pinError.textContent = '';
+      updateDots();
+    }
+
+    // Keyboard support
+    document.addEventListener('keydown', (e) => {
+      if (pinScreen.style.display === 'none') return;
+      if (e.key >= '0' && e.key <= '9') pressKey(e.key);
+      if (e.key === 'Backspace') deleteKey();
+    });
+  </script>
+
+  <style>
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      20%      { transform: translateX(-6px); }
+      40%      { transform: translateX(6px); }
+      60%      { transform: translateX(-4px); }
+      80%      { transform: translateX(4px); }
+    }
+  </style>
+</body>
+</html>
