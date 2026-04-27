@@ -1,8 +1,8 @@
 // ─── Supabase client ──────────────────────────────────────────
 // Fill in your project URL and anon key before deploying.
 // Find these in: Supabase dashboard → Settings → API
-const SUPABASE_URL     = 'YOUR_SUPABASE_URL';
-const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+const SUPABASE_URL     = 'https://rzwczgdbkmdwpyrlcueo.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ6d2N6Z2Ria21kd3B5cmxjdWVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMTc2ODMsImV4cCI6MjA5Mjg5MzY4M30.wQOhSyeCx0cvhTrMVM9DFHPGgDCiXfVOjFvxAWqxInM';
 
 // UMD global provided by the CDN script loaded before this file
 const { createClient } = window.supabase;
