@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — Parafour Contractor Portal</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><circle cx='20' cy='20' r='20' fill='%232E7D32'/><text x='20' y='28' text-anchor='middle' fill='white' font-family='Inter,sans-serif' font-size='22' font-weight='800'>4</text></svg>" />
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body class="portal-page">
+
+  <!-- ── Portal Topbar ── -->
+  <header class="portal-topbar">
+    <div class="portal-topbar-inner">
+      <a href="/portal/" class="portal-logo">
+        <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="20" cy="20" r="20" fill="#2E7D32"/>
+          <text x="20" y="28" text-anchor="middle" fill="white" font-family="Inter,system-ui,sans-serif" font-size="22" font-weight="800">4</text>
+        </svg>
+        Parafour <span class="portal-logo-label">/ Portal</span>
+      </a>
+      <nav id="portalNav" aria-label="Portal navigation"></nav>
+      <div class="portal-topbar-user">
+        <span id="portalUserName"></span>
+        <span id="portalTierBadge" class="tier-badge"></span>
+        <button class="portal-signout" onclick="signOut()">Sign Out</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Content ── -->
+  <div class="portal-content">
+
+    <div class="portal-welcome">
+      <h1>Welcome back, <span id="welcomeName">there</span>.</h1>
+      <p>You have Tier 1 access. Upgrade to Tier 2 to unlock full contractor resources.</p>
+    </div>
+
+    <!-- ── Upgrade Banner ── -->
+    <div class="upgrade-banner">
+      <div class="upgrade-banner-text">
+        <h3>Unlock Certified Contractor Resources</h3>
+        <p>Tier 2 access includes full wiring diagrams, complete technical manuals, AI-assisted diagnostics, and priority support. Apply to upgrade your account.</p>
+      </div>
+      <a href="/portal/apply.html" class="btn btn-outline-white">Apply for Tier 2</a>
+    </div>
+
+    <!-- ── Accessible Resources ── -->
+    <div class="portal-section">
+      <div class="portal-section-header">
+        <h2>Available Resources</h2>
+      </div>
+      <div class="portal-card-grid">
+
+        <a href="/support/p4-series/error-codes/" class="portal-doc-card">
+          <div class="portal-doc-card-icon">⚠️</div>
+          <h3>Error Codes</h3>
+          <p>Complete P4 Series error code reference with descriptions and initial troubleshooting steps.</p>
+          <span class="portal-doc-card-link">View Error Codes →</span>
+        </a>
+
+        <div class="portal-doc-card" style="cursor:default;">
+          <div class="portal-doc-card-icon">📋</div>
+          <h3>Installation Checklist</h3>
+          <p>Pre-installation and commissioning checklist for P4 Series dispensers.</p>
+          <span class="coming-soon-pill">Coming Soon</span>
+        </div>
+
+        <a href="/certifications/" class="portal-doc-card">
+          <div class="portal-doc-card-icon">✅</div>
+          <h3>Certifications</h3>
+          <p>ETL, NTEP Category 1, CE, and GOST certification details and compliance documentation.</p>
+          <span class="portal-doc-card-link">View Certifications →</span>
+        </a>
+
+        <a href="/products/p4-series/" class="portal-doc-card">
+          <div class="portal-doc-card-icon">📄</div>
+          <h3>Product Specifications</h3>
+          <p>Full P4 Series spec sheet including menu system, compatible meters, and electrical ratings.</p>
+          <span class="portal-doc-card-link">View Specs →</span>
+        </a>
+
+      </div>
+    </div>
+
+    <!-- ── Locked Resources ── -->
+    <div class="portal-section">
+      <div class="portal-section-header">
+        <h2>Tier 2 Resources <span style="font-size:.8rem; font-weight:400; color:var(--color-text-muted);">&nbsp;— Certified Contractors Only</span></h2>
+      </div>
+      <div class="portal-card-grid">
+
+        <div class="portal-doc-card locked">
+          <div class="portal-doc-card-icon">🔧</div>
+          <h3>Full Troubleshooting Guide</h3>
+          <p>In-depth diagnostics for all P4 Series fault conditions, including intermittent failures.</p>
+          <div class="lock-overlay"><span class="lock-badge">🔒 Tier 2</span></div>
+        </div>
+
+        <div class="portal-doc-card locked">
+          <div class="portal-doc-card-icon">⚡</div>
+          <h3>Wiring Diagrams</h3>
+          <p>Complete electrical wiring diagrams for all P4 Series configurations and optional equipment.</p>
+          <div class="lock-overlay"><span class="lock-badge">🔒 Tier 2</span></div>
+        </div>
+
+        <div class="portal-doc-card locked">
+          <div class="portal-doc-card-icon">📖</div>
+          <h3>Technical Manual</h3>
+          <p>Full installation, operation, and maintenance manual for the P4 Series ProCE.</p>
+          <div class="lock-overlay"><span class="lock-badge">🔒 Tier 2</span></div>
+        </div>
+
+        <div class="portal-doc-card locked">
+          <div class="portal-doc-card-icon">🤖</div>
+          <h3>AI Diagnostic Assistant</h3>
+          <p>AI-powered diagnostic tool for interpreting error codes and recommending corrective actions.</p>
+          <div class="lock-overlay"><span class="lock-badge">🔒 Tier 2</span></div>
+        </div>
+
+        <div class="portal-doc-card locked">
+          <div class="portal-doc-card-icon">🎓</div>
+          <h3>Training Materials</h3>
+          <p>Certification training modules and assessment for P4 Series installation and service.</p>
+          <div class="lock-overlay"><span class="lock-badge">🔒 Tier 2</span></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── Quote Request Form ── -->
+    <div class="portal-section">
+      <div class="portal-section-header">
+        <h2>Request a Quote</h2>
+      </div>
+      <div class="portal-form">
+        <div class="portal-alert" id="quoteAlert"></div>
+        <form id="quoteForm" novalidate>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="qName">Your Name</label>
+              <input type="text" id="qName" required />
+            </div>
+            <div class="form-group">
+              <label for="qCompany">Company</label>
+              <input type="text" id="qCompany" required />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="qEmail">Email</label>
+              <input type="email" id="qEmail" required />
+            </div>
+            <div class="form-group">
+              <label for="qPhone">Phone</label>
+              <input type="tel" id="qPhone" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="qProduct">Product Interest</label>
+            <select id="qProduct">
+              <option value="">Select a product…</option>
+              <option>P4 Series — Standard Configuration</option>
+              <option>P4 Series — Retail Configuration</option>
+              <option>P4 Series — Remote Dispenser</option>
+              <option>Other / General Inquiry</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="qMessage">Message</label>
+            <textarea id="qMessage" rows="4" placeholder="Tell us about your project, timeline, and any specific requirements…"></textarea>
+          </div>
+          <div class="form-submit">
+            <button type="submit" class="btn btn-primary" id="quoteBtn">Submit Request</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/portal.js"></script>
+  <script>
+    (async () => {
+      const portalUser = await requireTier('tier1');
+      if (!portalUser) return;
+      await populatePortalNav();
+      const nameEl = document.getElementById('welcomeName');
+      if (nameEl && portalUser.full_name) {
+        nameEl.textContent = portalUser.full_name.split(' ')[0];
+      }
+      document.addEventListener('DOMContentLoaded', initQuoteForm);
+      await logActivity('dashboard_t1_view');
+    })();
+  </script>
+
+</body>
+</html>

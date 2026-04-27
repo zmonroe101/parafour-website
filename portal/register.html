@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Request Access — Parafour Contractor Portal</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><circle cx='20' cy='20' r='20' fill='%232E7D32'/><text x='20' y='28' text-anchor='middle' fill='white' font-family='Inter,sans-serif' font-size='22' font-weight='800'>4</text></svg>" />
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+
+  <div class="auth-page">
+    <div class="auth-card" style="max-width:520px;">
+
+      <div class="auth-card-logo">
+        <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="20" cy="20" r="20" fill="#2E7D32"/>
+          <text x="20" y="28" text-anchor="middle" fill="white" font-family="Inter,system-ui,sans-serif" font-size="22" font-weight="800">4</text>
+        </svg>
+        <span>Parafour Innovations</span>
+      </div>
+
+      <h2>Request Portal Access</h2>
+      <p class="auth-card-sub">Create your Tier 1 account to access error codes, support resources, and more.</p>
+
+      <div class="auth-error" id="registerError"></div>
+      <div class="auth-success" id="registerSuccess"></div>
+
+      <form class="auth-form" id="registerForm" novalidate>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="regName">Full Name</label>
+            <input type="text" id="regName" name="full_name" placeholder="Jane Smith" autocomplete="name" required />
+          </div>
+          <div class="form-group">
+            <label for="regCompany">Company</label>
+            <input type="text" id="regCompany" name="company" placeholder="Acme Propane" required />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="regEmail">Email Address</label>
+          <input type="email" id="regEmail" name="email" placeholder="you@company.com" autocomplete="email" required />
+        </div>
+        <div class="form-group">
+          <label for="regPhone">Phone <span style="color:#4B5563; font-weight:400;">(optional)</span></label>
+          <input type="tel" id="regPhone" name="phone" placeholder="(512) 555-0100" autocomplete="tel" />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="regPassword">Password</label>
+            <input type="password" id="regPassword" name="password" placeholder="Min. 8 characters" autocomplete="new-password" required />
+          </div>
+          <div class="form-group">
+            <label for="regConfirm">Confirm Password</label>
+            <input type="password" id="regConfirm" name="confirm_password" placeholder="Re-enter password" autocomplete="new-password" required />
+          </div>
+        </div>
+        <div class="checkbox-group">
+          <input type="checkbox" id="regTier2" name="tier2_interest" />
+          <label for="regTier2">I'm interested in applying for Tier 2 (Certified Contractor) access once my account is approved.</label>
+        </div>
+        <div class="checkbox-group">
+          <input type="checkbox" id="regTerms" name="terms" required />
+          <label for="regTerms">I agree to the <a href="/portal/terms.html" target="_blank">portal terms of use</a> and understand that access is subject to Parafour Innovations approval.</label>
+        </div>
+        <button type="submit" class="btn-auth" id="registerBtn">Create Account</button>
+      </form>
+
+      <hr class="auth-divider" />
+
+      <p class="auth-link">
+        Already have an account? <a href="/portal/login.html">Sign in</a>
+      </p>
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/portal.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', initRegisterForm);
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contractor Portal — Parafour Innovations</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><circle cx='20' cy='20' r='20' fill='%232E7D32'/><text x='20' y='28' text-anchor='middle' fill='white' font-family='Inter,sans-serif' font-size='22' font-weight='800'>4</text></svg>" />
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+
+  <div class="portal-spinner" id="spinner">
+    <div class="spinner"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="/js/auth.js"></script>
+  <script>
+    (async () => {
+      const user = await getCurrentUser();
+      if (!user) {
+        window.location.replace('/portal/login.html');
+        return;
+      }
+      const portalUser = await getPortalUser();
+      if (!portalUser) {
+        window.location.replace('/portal/login.html');
+        return;
+      }
+      if (portalUser.role === 'admin') {
+        window.location.replace('/portal/admin/');
+      } else if (portalUser.role === 'tier2') {
+        window.location.replace('/portal/dashboard-t2.html');
+      } else {
+        window.location.replace('/portal/dashboard-t1.html');
+      }
+    })();
+  </script>
+
+</body>
+</html>

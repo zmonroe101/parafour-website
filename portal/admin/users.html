@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>User Management — Parafour Admin</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><circle cx='20' cy='20' r='20' fill='%232E7D32'/><text x='20' y='28' text-anchor='middle' fill='white' font-family='Inter,sans-serif' font-size='22' font-weight='800'>4</text></svg>" />
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body class="portal-page">
+
+  <!-- ── Portal Topbar ── -->
+  <header class="portal-topbar">
+    <div class="portal-topbar-inner">
+      <a href="/portal/admin/" class="portal-logo">
+        <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="20" cy="20" r="20" fill="#2E7D32"/>
+          <text x="20" y="28" text-anchor="middle" fill="white" font-family="Inter,system-ui,sans-serif" font-size="22" font-weight="800">4</text>
+        </svg>
+        Parafour <span class="portal-logo-label">/ Admin</span>
+      </a>
+      <nav id="portalNav" aria-label="Admin navigation"></nav>
+      <div class="portal-topbar-user">
+        <span id="portalUserName"></span>
+        <span id="portalTierBadge" class="tier-badge"></span>
+        <button class="portal-signout" onclick="signOut()">Sign Out</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Content ── -->
+  <div class="portal-content">
+
+    <div class="portal-welcome">
+      <h1>User Management</h1>
+      <p>View, filter, and manage all portal users.</p>
+    </div>
+
+    <!-- ── Filters ── -->
+    <div class="portal-filters">
+      <select id="filterRole">
+        <option value="">All Roles</option>
+        <option value="tier1">Tier 1</option>
+        <option value="tier2">Tier 2</option>
+        <option value="admin">Admin</option>
+      </select>
+      <select id="filterStatus">
+        <option value="">All Statuses</option>
+        <option value="active">Active</option>
+        <option value="suspended">Suspended</option>
+      </select>
+      <input type="text" id="searchUsers" placeholder="Search name, email, or company…" />
+      <button class="export-btn" id="exportUsersBtn">Export CSV</button>
+    </div>
+
+    <!-- ── Users Table ── -->
+    <div class="portal-table-wrap">
+      <div style="overflow-x:auto;">
+        <table class="portal-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Company</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Last Login</th>
+              <th>Registered</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="allUsersTbody">
+            <tr><td colspan="9" class="portal-table-empty">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/portal.js"></script>
+  <script>
+    (async () => {
+      const portalUser = await requireTier('admin');
+      if (!portalUser) return;
+      await populatePortalNav();
+      await loadAllUsers();
+
+      document.getElementById('filterRole').addEventListener('change', loadAllUsers);
+      document.getElementById('filterStatus').addEventListener('change', loadAllUsers);
+
+      let searchTimeout;
+      document.getElementById('searchUsers').addEventListener('input', () => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(loadAllUsers, 300);
+      });
+
+      document.getElementById('exportUsersBtn').addEventListener('click', exportUsersCSV);
+    })();
+  </script>
+
+</body>
+</html>

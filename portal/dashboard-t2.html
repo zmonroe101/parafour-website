@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Certified Contractor Dashboard — Parafour Portal</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><circle cx='20' cy='20' r='20' fill='%232E7D32'/><text x='20' y='28' text-anchor='middle' fill='white' font-family='Inter,sans-serif' font-size='22' font-weight='800'>4</text></svg>" />
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body class="portal-page">
+
+  <!-- ── Portal Topbar ── -->
+  <header class="portal-topbar">
+    <div class="portal-topbar-inner">
+      <a href="/portal/" class="portal-logo">
+        <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="20" cy="20" r="20" fill="#2E7D32"/>
+          <text x="20" y="28" text-anchor="middle" fill="white" font-family="Inter,system-ui,sans-serif" font-size="22" font-weight="800">4</text>
+        </svg>
+        Parafour <span class="portal-logo-label">/ Portal</span>
+      </a>
+      <nav id="portalNav" aria-label="Portal navigation"></nav>
+      <div class="portal-topbar-user">
+        <span id="portalUserName"></span>
+        <span id="portalTierBadge" class="tier-badge"></span>
+        <button class="portal-signout" onclick="signOut()">Sign Out</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Content ── -->
+  <div class="portal-content">
+
+    <div class="portal-welcome">
+      <h1>Certified Contractor Portal</h1>
+      <p>Welcome back, <span id="welcomeName">contractor</span>. You have full access to all P4 Series technical resources.</p>
+    </div>
+
+    <!-- ── Technical Documentation ── -->
+    <div class="portal-section">
+      <div class="portal-section-header">
+        <h2>P4 Series Technical Resources</h2>
+        <a href="/support/p4-series/">All Support Docs →</a>
+      </div>
+      <div class="portal-card-grid">
+
+        <a href="/support/p4-series/manuals/" class="portal-doc-card">
+          <div class="portal-doc-card-icon">📖</div>
+          <h3>Technical Manual</h3>
+          <p>Complete installation, operation, and maintenance manual for the P4 Series ProCE calculator.</p>
+          <span class="portal-doc-card-link">View Manual →</span>
+        </a>
+
+        <a href="/support/p4-series/wiring/" class="portal-doc-card">
+          <div class="portal-doc-card-icon">⚡</div>
+          <h3>Wiring Diagrams</h3>
+          <p>Full electrical wiring diagrams for all configurations, pump interfaces, and optional accessories.</p>
+          <span class="portal-doc-card-link">View Diagrams →</span>
+        </a>
+
+        <a href="/support/p4-series/troubleshooting/" class="portal-doc-card">
+          <div class="portal-doc-card-icon">🔧</div>
+          <h3>Troubleshooting Guide</h3>
+          <p>In-depth diagnostic procedures for all P4 Series fault conditions, including intermittent failures.</p>
+          <span class="portal-doc-card-link">View Guide →</span>
+        </a>
+
+        <a href="/support/p4-series/error-codes/" class="portal-doc-card">
+          <div class="portal-doc-card-icon">⚠️</div>
+          <h3>Error Codes</h3>
+          <p>Complete error code reference with root cause analysis and corrective action recommendations.</p>
+          <span class="portal-doc-card-link">View Codes →</span>
+        </a>
+
+        <a href="/certifications/" class="portal-doc-card">
+          <div class="portal-doc-card-icon">✅</div>
+          <h3>Certifications</h3>
+          <p>ETL, NTEP Category 1, CE, and GOST certification details for code compliance and permit applications.</p>
+          <span class="portal-doc-card-link">View Certs →</span>
+        </a>
+
+        <a href="/products/p4-series/" class="portal-doc-card">
+          <div class="portal-doc-card-icon">📄</div>
+          <h3>Product Specifications</h3>
+          <p>Full P4 Series spec sheet, menu system documentation, and compatible meter listings.</p>
+          <span class="portal-doc-card-link">View Specs →</span>
+        </a>
+
+      </div>
+    </div>
+
+    <!-- ── In Development ── -->
+    <div class="portal-section">
+      <div class="portal-section-header">
+        <h2>In Development</h2>
+      </div>
+      <div class="portal-card-grid">
+
+        <div class="portal-coming-soon-card">
+          <div class="portal-doc-card-icon">🤖</div>
+          <h3>AI Diagnostic Assistant</h3>
+          <p>AI-powered tool for interpreting complex fault conditions and recommending step-by-step corrective actions.</p>
+          <span class="coming-soon-pill">Coming Soon</span>
+        </div>
+
+        <div class="portal-coming-soon-card">
+          <div class="portal-doc-card-icon">🎓</div>
+          <h3>Training &amp; Certification</h3>
+          <p>Interactive training modules and competency assessments for P4 Series installation and service.</p>
+          <span class="coming-soon-pill">Coming Soon</span>
+        </div>
+
+        <div class="portal-coming-soon-card">
+          <div class="portal-doc-card-icon">🛒</div>
+          <h3>Parts &amp; Accessories Store</h3>
+          <p>Direct ordering for replacement parts, accessories, and approved components for certified contractors.</p>
+          <span class="coming-soon-pill">Coming Soon</span>
+        </div>
+
+        <div class="portal-coming-soon-card">
+          <div class="portal-doc-card-icon">🛡️</div>
+          <h3>Warranty Registration</h3>
+          <p>Register installed units, track warranty status, and submit warranty claims online.</p>
+          <span class="coming-soon-pill">Coming Soon</span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── Quote Request Form ── -->
+    <div class="portal-section">
+      <div class="portal-section-header">
+        <h2>Request a Quote</h2>
+      </div>
+      <div class="portal-form">
+        <div class="portal-alert" id="quoteAlert"></div>
+        <form id="quoteForm" novalidate>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="qName">Your Name</label>
+              <input type="text" id="qName" required />
+            </div>
+            <div class="form-group">
+              <label for="qCompany">Company</label>
+              <input type="text" id="qCompany" required />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="qEmail">Email</label>
+              <input type="email" id="qEmail" required />
+            </div>
+            <div class="form-group">
+              <label for="qPhone">Phone</label>
+              <input type="tel" id="qPhone" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="qProduct">Product Interest</label>
+              <select id="qProduct">
+                <option value="">Select a product…</option>
+                <option>P4 Series — Standard Configuration</option>
+                <option>P4 Series — Retail Configuration</option>
+                <option>P4 Series — Remote Dispenser</option>
+                <option>Other / General Inquiry</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="qQuantity">Quantity</label>
+              <input type="text" id="qQuantity" placeholder="e.g. 2 units" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="qDistributor">Preferred Distributor <span style="font-weight:400; color:var(--color-text-muted);">(if applicable)</span></label>
+            <input type="text" id="qDistributor" placeholder="Distributor name or N/A" />
+          </div>
+          <div class="form-group">
+            <label for="qMessage">Project Details</label>
+            <textarea id="qMessage" rows="4" placeholder="Describe the installation site, fuel flow requirements, timeline, and any special requirements…"></textarea>
+          </div>
+          <div class="form-submit">
+            <button type="submit" class="btn btn-primary" id="quoteBtn">Submit Request</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/portal.js"></script>
+  <script>
+    (async () => {
+      const portalUser = await requireTier('tier2');
+      if (!portalUser) return;
+      await populatePortalNav();
+      const nameEl = document.getElementById('welcomeName');
+      if (nameEl && portalUser.full_name) {
+        nameEl.textContent = portalUser.full_name.split(' ')[0];
+      }
+      document.addEventListener('DOMContentLoaded', initQuoteForm);
+      await logActivity('dashboard_t2_view');
+    })();
+  </script>
+
+</body>
+</html>
