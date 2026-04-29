@@ -1391,6 +1391,96 @@ strong { font-weight: 700; }
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* ─── Testimonials ─── */
+.testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+}
+.testimonial-card {
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+}
+.testimonial-quote {
+  font-size: .9rem;
+  line-height: 1.8;
+  color: var(--color-text);
+  flex: 1;
+  font-style: italic;
+}
+.testimonial-quote::before {
+  content: '\201C';
+  color: var(--color-primary);
+  font-size: 1.4rem;
+  line-height: 0;
+  vertical-align: -.35rem;
+  margin-right: 2px;
+  font-style: normal;
+}
+.testimonial-attribution {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border);
+}
+.testimonial-name { font-size: .85rem; font-weight: 700; color: var(--color-dark); }
+.testimonial-org  { font-size: .8rem; color: var(--color-text-muted); margin-top: 2px; }
+
+/* ─── About page ─── */
+.about-lead {
+  max-width: 760px;
+  font-size: .96rem;
+  line-height: 1.85;
+  color: var(--color-text);
+}
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+.team-card {
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-top: 3px solid var(--color-primary);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+}
+.team-card h3 { font-size: 1.08rem; font-weight: 800; color: var(--color-dark); margin-bottom: 2px; }
+.team-role {
+  font-size: .78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--color-primary);
+  margin-bottom: 14px;
+}
+.team-card p { font-size: .88rem; color: var(--color-text-muted); line-height: 1.7; }
+.membership-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 12px;
+}
+.membership-item {
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 14px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.membership-item a {
+  font-size: .88rem;
+  font-weight: 600;
+  color: var(--color-secondary);
+  text-decoration: none;
+}
+.membership-item a:hover { text-decoration: underline; }
+.membership-item span { font-size: .78rem; color: var(--color-text-muted); }
+
 /* ─── Nav portal link ─── */
 .nav-portal-link {
   border: 1px solid rgba(46,125,50,.4);

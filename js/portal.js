@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════
-//  portal.js — Contractor Portal logic
+//  portal.js — Customer Portal logic
 //  Depends on: auth.js (must be loaded first)
 // ═══════════════════════════════════════════════════════════════
 
