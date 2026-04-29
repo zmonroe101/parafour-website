@@ -1553,3 +1553,93 @@ strong { font-weight: 700; }
   font-size: 1.15rem; font-weight: 800; color: var(--color-dark);
   margin-bottom: 16px; padding-bottom: 10px; border-bottom: 2px solid var(--color-primary);
 }
+
+/* ─── Product page header with image ─── */
+.product-header-layout {
+  display: flex;
+  align-items: center;
+  gap: 48px;
+  flex-wrap: wrap;
+}
+.product-header-text { flex: 1; min-width: 280px; }
+.product-header-img {
+  flex-shrink: 0;
+  width: clamp(160px, 24vw, 270px);
+  align-self: center;
+}
+.product-header-img img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-lg);
+  background: rgba(255,255,255,.07);
+  padding: 16px;
+  box-shadow: 0 4px 28px rgba(0,0,0,.35);
+}
+@media (max-width: 680px) {
+  .product-header-layout { flex-direction: column; gap: 28px; }
+  .product-header-img { width: 180px; }
+}
+
+/* ─── Product index card image ─── */
+.card-product-img {
+  width: 100%;
+  height: 148px;
+  object-fit: contain;
+  background: var(--color-light);
+  border-radius: var(--radius);
+  margin-bottom: 14px;
+  padding: 8px;
+}
+
+/* ─── Accessory cards ─── */
+.accessory-list { display: flex; flex-direction: column; gap: 16px; }
+.accessory-card {
+  display: grid;
+  grid-template-columns: 136px 1fr;
+  gap: 24px;
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 22px 24px;
+  box-shadow: var(--shadow-sm);
+  align-items: start;
+  transition: box-shadow var(--transition), border-color var(--transition);
+}
+.accessory-card:hover { box-shadow: var(--shadow-md); border-color: #C8E6C9; }
+.accessory-card-img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  border-radius: var(--radius);
+  background: var(--color-light);
+  padding: 8px;
+}
+.accessory-card-model {
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+  margin-bottom: 4px;
+}
+.accessory-card-name {
+  font-size: 1.02rem;
+  font-weight: 700;
+  color: var(--color-dark);
+  margin-bottom: 8px;
+}
+.accessory-card-desc {
+  font-size: .88rem;
+  color: var(--color-text-muted);
+  line-height: 1.7;
+  margin-bottom: 10px;
+}
+.accessory-card-price {
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+@media (max-width: 560px) {
+  .accessory-card { grid-template-columns: 1fr; }
+  .accessory-card-img { width: 110px; }
+}
