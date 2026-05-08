@@ -42,7 +42,18 @@ function initRegisterForm() {
     btn.disabled    = true;
     btn.textContent = 'Creating account…';
 
-    const { data: authData, error: authError } = await supabase.auth.signUp({ email, password });
+    const { error: authError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name:       fullName,
+          company,
+          phone:           phone || null,
+          tier2_requested: tier2req,
+        },
+      },
+    });
 
     if (authError) {
       errorEl.textContent = authError.message.includes('already registered')
@@ -53,33 +64,6 @@ function initRegisterForm() {
       btn.textContent = 'Create Account';
       return;
     }
-
-    const { error: dbError } = await supabase.from('portal_users').insert({
-      email,
-      full_name:          fullName,
-      company,
-      phone:              phone || null,
-      role:               'tier1',
-      status:             'active',
-      tier2_requested:    tier2req,
-      tier2_request_date: tier2req ? new Date().toISOString() : null,
-      auth_id:            authData.user.id,
-    });
-
-    if (dbError) {
-      errorEl.textContent = 'Profile setup failed. Please contact support@parafour.com.';
-      errorEl.classList.add('visible');
-      btn.disabled    = false;
-      btn.textContent = 'Create Account';
-      return;
-    }
-
-    // Best-effort activity log (portal_user_id linked by trigger/RLS)
-    await supabase.from('lead_activity').insert({
-      portal_user_id: null,
-      action:         'registered',
-      metadata:       { email, tier2_requested: tier2req },
-    });
 
     window.location.replace('/portal/dashboard-t1.html');
   });
