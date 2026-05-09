@@ -28,7 +28,6 @@
       color: #fff;
       font-size: 1.05rem;
       font-weight: 600;
-      text-decoration: none;
     }
     .portal-loading-logo svg {
       width: 36px;
@@ -65,25 +64,49 @@
     <div class="portal-loading-text">Loading…</div>
   </div>
 
+  <!--
+    RLS policy required in Supabase for the role lookup below to succeed:
+
+    CREATE POLICY "Users can read own record by auth_id"
+    ON portal_users FOR SELECT
+    USING (auth_id = auth.uid());
+  -->
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="/js/auth.js"></script>
   <script>
+    // Safe fallback: redirect to tier1 dashboard after 5 seconds if nothing resolves
+    const fallbackTimer = setTimeout(() => {
+      window.location.replace('/portal/dashboard-t1.html');
+    }, 5000);
+
     (async () => {
-      // getSession() automatically processes any #access_token in the URL hash
-      // (email confirmation links land here with a token fragment)
+      // getSession() also processes any #access_token hash from email confirmation links
       const { data: { session } } = await supabase.auth.getSession();
+
       if (!session) {
+        clearTimeout(fallbackTimer);
         window.location.replace('/portal/login.html');
         return;
       }
-      const portalUser = await getPortalUser();
+
+      // Query portal_users directly with auth_id from the session — avoids any
+      // dependency on getPortalUser() which may fail if RLS is not yet configured
+      const { data: portalUser } = await supabase
+        .from('portal_users')
+        .select('role')
+        .eq('auth_id', session.user.id)
+        .maybeSingle();
+
+      clearTimeout(fallbackTimer);
+
       if (!portalUser) {
-        window.location.replace('/portal/login.html');
+        // Auth user exists but no portal_users record yet — safe fallback
+        window.location.replace('/portal/dashboard-t1.html');
         return;
       }
-      if (portalUser.role === 'admin') {
-        window.location.replace('/portal/admin/');
-      } else if (portalUser.role === 'tier2') {
+
+      if (portalUser.role === 'admin' || portalUser.role === 'tier2') {
         window.location.replace('/portal/dashboard-t2.html');
       } else {
         window.location.replace('/portal/dashboard-t1.html');
