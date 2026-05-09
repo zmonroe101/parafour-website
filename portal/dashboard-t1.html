@@ -7,7 +7,7 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><circle cx='20' cy='20' r='20' fill='%232E7D32'/><text x='20' y='28' text-anchor='middle' fill='white' font-family='Inter,sans-serif' font-size='22' font-weight='800'>4</text></svg>" />
   <link rel="stylesheet" href="/css/styles.css" />
 </head>
-<body class="portal-page">
+<body class="portal-page" style="display:none">
 
   <!-- ── Portal Topbar ── -->
   <header class="portal-topbar">
@@ -183,17 +183,13 @@
   <script src="/js/auth.js"></script>
   <script src="/js/portal.js"></script>
   <script>
-    (async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        window.location.replace('/portal/login.html');
-        return;
-      }
+    async function initDashboardT1() {
       const portalUser = await getPortalUser();
       if (!portalUser) {
-        window.location.replace('/portal/login.html');
+        window.location.href = '/portal/login.html';
         return;
       }
+      document.body.style.display = 'block';
       await populatePortalNav();
       const nameEl = document.getElementById('welcomeName');
       if (nameEl && portalUser.full_name) {
@@ -201,6 +197,21 @@
       }
       document.addEventListener('DOMContentLoaded', initQuoteForm);
       await logActivity('dashboard_t1_view');
+    }
+
+    (async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        await initDashboardT1();
+      } else {
+        supabase.auth.onAuthStateChange(async (event, newSession) => {
+          if (newSession) {
+            await initDashboardT1();
+          } else {
+            window.location.href = '/portal/login.html';
+          }
+        });
+      }
     })();
   </script>
 

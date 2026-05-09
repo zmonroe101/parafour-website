@@ -75,43 +75,23 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="/js/auth.js"></script>
   <script>
-    // Safe fallback: redirect to tier1 dashboard after 5 seconds if nothing resolves
-    const fallbackTimer = setTimeout(() => {
-      window.location.replace('/portal/dashboard-t1.html');
-    }, 5000);
-
-    (async () => {
-      // getSession() also processes any #access_token hash from email confirmation links
-      const { data: { session } } = await supabase.auth.getSession();
-
+    supabase.auth.onAuthStateChange(async (event, session) => {
       if (!session) {
-        clearTimeout(fallbackTimer);
-        window.location.replace('/portal/login.html');
+        window.location.href = '/portal/login.html';
         return;
       }
-
-      // Query portal_users directly with auth_id from the session — avoids any
-      // dependency on getPortalUser() which may fail if RLS is not yet configured
-      const { data: portalUser } = await supabase
+      const { data } = await supabase
         .from('portal_users')
         .select('role')
         .eq('auth_id', session.user.id)
         .maybeSingle();
-
-      clearTimeout(fallbackTimer);
-
-      if (!portalUser) {
-        // Auth user exists but no portal_users record yet — safe fallback
-        window.location.replace('/portal/dashboard-t1.html');
-        return;
-      }
-
-      if (portalUser.role === 'admin' || portalUser.role === 'tier2') {
-        window.location.replace('/portal/dashboard-t2.html');
+      const role = data?.role || 'tier1';
+      if (role === 'tier2' || role === 'admin') {
+        window.location.href = '/portal/dashboard-t2.html';
       } else {
-        window.location.replace('/portal/dashboard-t1.html');
+        window.location.href = '/portal/dashboard-t1.html';
       }
-    })();
+    });
   </script>
 
 </body>
