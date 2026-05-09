@@ -46,6 +46,7 @@ function initRegisterForm() {
       email,
       password,
       options: {
+        emailRedirectTo: 'https://parafour-website.pages.dev/portal/',
         data: {
           full_name:       fullName,
           company,

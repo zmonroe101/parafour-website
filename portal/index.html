@@ -5,20 +5,74 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Customer Portal — Parafour Innovations</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><circle cx='20' cy='20' r='20' fill='%232E7D32'/><text x='20' y='28' text-anchor='middle' fill='white' font-family='Inter,sans-serif' font-size='22' font-weight='800'>4</text></svg>" />
-  <link rel="stylesheet" href="/css/styles.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #111827;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      font-family: Inter, system-ui, sans-serif;
+    }
+    .portal-loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+    .portal-loading-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #fff;
+      font-size: 1.05rem;
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .portal-loading-logo svg {
+      width: 36px;
+      height: 36px;
+      flex-shrink: 0;
+    }
+    .portal-loading-spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid rgba(255, 255, 255, .12);
+      border-top-color: #2E7D32;
+      border-radius: 50%;
+      animation: spin .75s linear infinite;
+    }
+    .portal-loading-text {
+      color: rgba(255, 255, 255, .4);
+      font-size: .8rem;
+      letter-spacing: .04em;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
 </head>
 <body>
 
-  <div class="portal-spinner" id="spinner">
-    <div class="spinner"></div>
+  <div class="portal-loading">
+    <div class="portal-loading-logo">
+      <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <circle cx="20" cy="20" r="20" fill="#2E7D32"/>
+        <text x="20" y="28" text-anchor="middle" fill="white" font-family="Inter,system-ui,sans-serif" font-size="22" font-weight="800">4</text>
+      </svg>
+      <span>Parafour Innovations</span>
+    </div>
+    <div class="portal-loading-spinner"></div>
+    <div class="portal-loading-text">Loading…</div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="/js/auth.js"></script>
   <script>
     (async () => {
-      const user = await getCurrentUser();
-      if (!user) {
+      // getSession() automatically processes any #access_token in the URL hash
+      // (email confirmation links land here with a token fragment)
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
         window.location.replace('/portal/login.html');
         return;
       }
