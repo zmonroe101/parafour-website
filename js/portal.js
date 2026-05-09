@@ -103,16 +103,9 @@ function initLoginForm() {
       .from('portal_users')
       .select('role')
       .eq('auth_id', data.user.id)
-      .single();
+      .maybeSingle();
 
-    if (!portalUser) {
-      window.location.replace('/portal/dashboard-t1.html');
-      return;
-    }
-
-    if (portalUser.role === 'admin' && ADMIN_EMAILS.includes(email)) {
-      window.location.replace('/portal/admin/');
-    } else if (portalUser.role === 'tier2') {
+    if (portalUser?.role === 'tier2' || portalUser?.role === 'admin') {
       window.location.replace('/portal/dashboard-t2.html');
     } else {
       window.location.replace('/portal/dashboard-t1.html');

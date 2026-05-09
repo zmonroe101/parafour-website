@@ -193,8 +193,16 @@
   <script src="/js/portal.js"></script>
   <script>
     (async () => {
-      const portalUser = await requireTier('tier2');
-      if (!portalUser) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        window.location.replace('/portal/login.html');
+        return;
+      }
+      const portalUser = await getPortalUser();
+      if (!portalUser || (portalUser.role !== 'tier2' && portalUser.role !== 'admin')) {
+        window.location.replace('/portal/dashboard-t1.html');
+        return;
+      }
       await populatePortalNav();
       const nameEl = document.getElementById('welcomeName');
       if (nameEl && portalUser.full_name) {
