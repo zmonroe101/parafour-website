@@ -208,14 +208,14 @@
       await logActivity('dashboard_t2_view');
     }
 
-    (async () => {
+    setTimeout(async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         window.location.href = '/portal/login.html';
         return;
       }
       await initDashboardT2();
-    })();
+    }, 2000);
   </script>
 
 </body>

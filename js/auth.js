@@ -1,14 +1,20 @@
 // ─── Supabase client ──────────────────────────────────────────
-// Fill in your project URL and anon key before deploying.
-// Find these in: Supabase dashboard → Settings → API
-const SUPABASE_URL     = 'https://rzwczgdbkmdwpyrlcueo.supabase.co';
+const SUPABASE_URL      = 'https://rzwczgdbkmdwpyrlcueo.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ6d2N6Z2Ria21kd3B5cmxjdWVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMTc2ODMsImV4cCI6MjA5Mjg5MzY4M30.wQOhSyeCx0cvhTrMVM9DFHPGgDCiXfVOjFvxAWqxInM';
 
 // UMD global provided by the CDN script loaded before this file.
 // Overwrite window.supabase (the CDN exports object) with the actual client
 // so all scripts reference it without a const re-declaration conflict.
 const { createClient } = window.supabase;
-window.supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+window.supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: {
+    storageKey: 'parafour-portal-auth',
+    storage: window.localStorage,
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true,
+  },
+});
 
 // Admin email allowlist — secondary frontend guard (role field is authoritative)
 const ADMIN_EMAILS = ['zak@parafour.com'];
