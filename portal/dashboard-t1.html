@@ -203,15 +203,27 @@
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         await initDashboardT1();
-      } else {
-        supabase.auth.onAuthStateChange(async (event, newSession) => {
-          if (newSession) {
-            await initDashboardT1();
-          } else {
+        return;
+      }
+      let redirected = false;
+      const timeout = setTimeout(() => {
+        if (!redirected) {
+          redirected = true;
+          window.location.href = '/portal/login.html';
+        }
+      }, 3000);
+      supabase.auth.onAuthStateChange(async (event, newSession) => {
+        if (newSession && !redirected) {
+          clearTimeout(timeout);
+          await initDashboardT1();
+        } else if (!newSession && event === 'SIGNED_OUT') {
+          clearTimeout(timeout);
+          if (!redirected) {
+            redirected = true;
             window.location.href = '/portal/login.html';
           }
-        });
-      }
+        }
+      });
     })();
   </script>
 
