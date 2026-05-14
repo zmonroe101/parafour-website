@@ -21,8 +21,8 @@ const ADMIN_EMAILS = ['zak@parafour.com'];
 
 // ─── getCurrentUser ───────────────────────────────────────────
 async function getCurrentUser() {
-  const { data: { user } } = await supabase.auth.getUser();
-  return user;
+  const { data: { session } } = await supabase.auth.getSession();
+  return session?.user ?? null;
 }
 
 // ─── getPortalUser ────────────────────────────────────────────
@@ -40,12 +40,12 @@ async function getPortalUser() {
 // ─── requireAuth ─────────────────────────────────────────────
 // Redirects to login if no active session. Returns auth user or null.
 async function requireAuth(redirectTo = '/portal/login.html') {
-  const user = await getCurrentUser();
-  if (!user) {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
     window.location.replace(redirectTo);
     return null;
   }
-  return user;
+  return session.user;
 }
 
 // ─── requireTier ─────────────────────────────────────────────

@@ -189,7 +189,6 @@
         window.location.href = '/portal/login.html';
         return;
       }
-      document.body.style.visibility = 'visible';
       await populatePortalNav();
       const nameEl = document.getElementById('welcomeName');
       if (nameEl && portalUser.full_name) {
@@ -199,14 +198,12 @@
       await logActivity('dashboard_t1_view');
     }
 
-    setTimeout(async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        window.location.href = '/portal/login.html';
-        return;
-      }
+    (async () => {
+      const user = await requireAuth();
+      if (!user) return;
+      document.body.style.visibility = 'visible';
       await initDashboardT1();
-    }, 2000);
+    })();
   </script>
 
 </body>

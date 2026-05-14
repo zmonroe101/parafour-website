@@ -194,11 +194,10 @@
   <script>
     async function initDashboardT2() {
       const portalUser = await getPortalUser();
-      if (!portalUser || (portalUser.role !== 'tier2' && portalUser.role !== 'admin')) {
-        window.location.href = '/portal/dashboard-t1.html';
+      if (!portalUser) {
+        window.location.href = '/portal/login.html';
         return;
       }
-      document.body.style.visibility = 'visible';
       await populatePortalNav();
       const nameEl = document.getElementById('welcomeName');
       if (nameEl && portalUser.full_name) {
@@ -208,14 +207,12 @@
       await logActivity('dashboard_t2_view');
     }
 
-    setTimeout(async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        window.location.href = '/portal/login.html';
-        return;
-      }
+    (async () => {
+      const portalUser = await requireTier('tier2');
+      if (!portalUser) return;
+      document.body.style.visibility = 'visible';
       await initDashboardT2();
-    }, 2000);
+    })();
   </script>
 
 </body>
