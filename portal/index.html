@@ -75,9 +75,11 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="/js/auth.js"></script>
   <script>
-    supabase.auth.onAuthStateChange(async (event, session) => {
+    // Immediately check for session and redirect - prevents redirect loop
+    (async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        window.location.href = '/portal/login.html';
+        window.location.replace('/portal/login.html');
         return;
       }
       const { data } = await supabase
@@ -87,11 +89,11 @@
         .maybeSingle();
       const role = data?.role || 'tier1';
       if (role === 'tier2' || role === 'admin') {
-        window.location.href = '/portal/dashboard-t2.html';
+        window.location.replace('/portal/dashboard-t2.html');
       } else {
-        window.location.href = '/portal/dashboard-t1.html';
+        window.location.replace('/portal/dashboard-t1.html');
       }
-    });
+    })();
   </script>
 
 </body>

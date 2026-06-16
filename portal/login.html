@@ -58,7 +58,19 @@
     (async () => {
       const user = await getCurrentUser();
       if (user) {
-        window.location.replace('/portal/');
+        // Redirect directly to appropriate dashboard to avoid redirect loop
+        const { data } = await supabase
+          .from('portal_users')
+          .select('role')
+          .eq('auth_id', user.id)
+          .maybeSingle();
+        const role = data?.role || 'tier1';
+        if (role === 'tier2' || role === 'admin') {
+          window.location.replace('/portal/dashboard-t2.html');
+        } else {
+          window.location.replace('/portal/dashboard-t1.html');
+        }
+        return;
       }
     })();
     document.addEventListener('DOMContentLoaded', initLoginForm);

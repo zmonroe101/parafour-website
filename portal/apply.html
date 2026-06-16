@@ -117,7 +117,8 @@
       if (!portalUser) return;
 
       if (portalUser.role === 'tier2' || portalUser.role === 'admin') {
-        window.location.replace('/portal/');
+        // Redirect tier2/admin directly to their dashboard instead of /portal/
+        window.location.replace('/portal/dashboard-t2.html');
         return;
       }
 
