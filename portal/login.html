@@ -34,7 +34,7 @@
         <div class="form-group">
           <label for="loginPassword">Password</label>
           <input type="password" id="loginPassword" name="password" placeholder="••••••••" autocomplete="current-password" required />
-          <button type="button" class="auth-forgot" id="forgotBtn">Forgot password?</button>
+          <button type="button" class="auth-forgot" id="forgotPassword">Forgot password?</button>
         </div>
         <button type="submit" class="btn-auth" id="loginBtn">Sign In</button>
       </form>
@@ -49,13 +49,80 @@
       </p>
 
     </div>
+
+    <!-- ── Set New Password (shown only after clicking the reset-email link) ── -->
+    <div class="auth-card" id="resetCard" style="display:none;">
+
+      <div class="auth-card-logo">
+        <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="20" cy="20" r="20" fill="#2E7D32"/>
+          <text x="20" y="28" text-anchor="middle" fill="white" font-family="Inter,system-ui,sans-serif" font-size="22" font-weight="800">4</text>
+        </svg>
+        <span>Parafour Innovations</span>
+      </div>
+
+      <h2>Set New Password</h2>
+      <p class="auth-card-sub">Choose a new password for your account.</p>
+
+      <div class="auth-error" id="resetError"></div>
+
+      <form class="auth-form" id="resetPasswordForm" novalidate>
+        <div class="form-group">
+          <label for="resetPassword1">New Password</label>
+          <input type="password" id="resetPassword1" name="password" placeholder="Min. 8 characters" autocomplete="new-password" required />
+        </div>
+        <div class="form-group">
+          <label for="resetPassword2">Confirm New Password</label>
+          <input type="password" id="resetPassword2" name="confirm_password" placeholder="Re-enter password" autocomplete="new-password" required />
+        </div>
+        <button type="submit" class="btn-auth" id="resetPasswordBtn">Update Password</button>
+      </form>
+
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="/js/auth.js"></script>
   <script src="/js/portal.js"></script>
   <script>
+    // Detected synchronously from the URL (before Supabase's async
+    // detectSessionInUrl handling consumes the hash) rather than raced
+    // against a timeout — token exchange over the network can take longer
+    // than a single event-loop tick, so waiting on a fixed delay here
+    // would be flaky. type=recovery is present in both the hash and query
+    // string across supabase-js versions, so check both.
+    function showResetPasswordForm() {
+      document.getElementById('loginForm').closest('.auth-card').style.display = 'none';
+      document.getElementById('resetCard').style.display = 'block';
+    }
+    let isPasswordRecovery = /type=recovery/.test(window.location.hash) || /type=recovery/.test(window.location.search);
+    if (isPasswordRecovery) showResetPasswordForm();
+
+    // Defensive fallback in case a future supabase-js version signals
+    // recovery only via the auth event rather than the URL.
+    supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY' && !isPasswordRecovery) {
+        isPasswordRecovery = true;
+        showResetPasswordForm();
+      }
+    });
+
     (async () => {
+      // Surface an error banner from a bounced orphaned-session redirect.
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('error') === 'account_not_found') {
+        const errorEl = document.getElementById('loginError');
+        errorEl.textContent = 'We couldn\'t find your portal account. Please sign in again or contact support if this continues.';
+        errorEl.classList.add('visible');
+      }
+      if (params.get('reset') === 'success') {
+        const successEl = document.getElementById('loginSuccess');
+        successEl.textContent = 'Password updated — sign in with your new password.';
+        successEl.classList.add('visible');
+      }
+
+      if (isPasswordRecovery) return;
+
       const user = await getCurrentUser();
       if (user) {
         // Redirect directly to appropriate dashboard to avoid redirect loop
@@ -64,8 +131,14 @@
           .select('role')
           .eq('auth_id', user.id)
           .maybeSingle();
-        const role = data?.role || 'tier1';
-        if (role === 'tier2' || role === 'admin') {
+        if (!data) {
+          // Orphaned session (no portal_users row) — clear it rather than
+          // guessing a role and bouncing to a dashboard that would just
+          // bounce back here. See js/auth.js requireTier() for the same fix.
+          await supabase.auth.signOut();
+          return;
+        }
+        if (data.role === 'tier2' || data.role === 'admin') {
           window.location.replace('/portal/dashboard-t2.html');
         } else {
           window.location.replace('/portal/dashboard-t1.html');
@@ -74,6 +147,7 @@
       }
     })();
     document.addEventListener('DOMContentLoaded', initLoginForm);
+    document.addEventListener('DOMContentLoaded', initResetPasswordForm);
   </script>
 
 </body>
