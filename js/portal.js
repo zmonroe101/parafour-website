@@ -136,6 +136,51 @@ function initLoginForm() {
   }
 }
 
+// ─── Set-new-password form (recovery link landing on login.html) ──
+function initResetPasswordForm() {
+  const form = document.getElementById('resetPasswordForm');
+  if (!form) return;
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn     = form.querySelector('[type="submit"]');
+    const errorEl = document.getElementById('resetError');
+    errorEl.classList.remove('visible');
+
+    const password = form.password.value;
+    const confirm  = form.confirm_password.value;
+
+    if (password.length < 8) {
+      errorEl.textContent = 'Password must be at least 8 characters.';
+      errorEl.classList.add('visible');
+      return;
+    }
+    if (password !== confirm) {
+      errorEl.textContent = 'Passwords do not match.';
+      errorEl.classList.add('visible');
+      return;
+    }
+
+    btn.disabled    = true;
+    btn.textContent = 'Updating…';
+
+    const { error } = await supabase.auth.updateUser({ password });
+
+    if (error) {
+      errorEl.textContent = error.message || 'Could not update password. Please request a new reset link.';
+      errorEl.classList.add('visible');
+      btn.disabled    = false;
+      btn.textContent = 'Update Password';
+      return;
+    }
+
+    // Force a fresh sign-in with the new password rather than continuing
+    // to ride the temporary recovery session.
+    await supabase.auth.signOut();
+    window.location.replace('/portal/login.html?reset=success');
+  });
+}
+
 // ─── Quote request form (T1 and T2) ──────────────────────────
 function initQuoteForm() {
   const form = document.getElementById('quoteForm');
@@ -187,31 +232,31 @@ function initApplyForm() {
   // Toggle distributor name field
   const distRadios = form.querySelectorAll('input[name="works_with_dist"]');
   distRadios.forEach(r => r.addEventListener('change', () => {
-    const wrap = document.getElementById('distributorWrap');
+    const wrap = document.getElementById('distNameGroup');
     if (wrap) wrap.style.display = r.value === 'yes' ? 'block' : 'none';
   }));
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn     = form.querySelector('[type="submit"]');
-    const errorEl = document.getElementById('applyError');
+    const alertEl = document.getElementById('applyAlert');
     btn.disabled    = true;
     btn.textContent = 'Submitting…';
-    errorEl.classList.remove('visible');
+    alertEl.classList.remove('visible');
 
     const portalUser = await getPortalUser();
     if (!portalUser) { window.location.replace('/portal/login.html'); return; }
 
-    const installTypes = [...form.querySelectorAll('input[name="install_type"]:checked')].map(c => c.value);
+    const distChecked = form.querySelector('input[name="works_with_dist"]:checked');
 
     const appData = {
-      years_experience:      form.years_experience.value,
-      install_types:         installTypes,
-      dispensers_12mo:       form.dispensers_12mo.value,
-      works_with_dist:       form.works_with_dist.value,
-      distributor_name:      form.distributor_name?.value?.trim() ?? '',
-      why_applying:          form.why_applying.value.trim(),
-      subscription_interest: form.subscription_interest.value,
+      business_name:     form.business_name.value.trim(),
+      years_experience:  form.years_experience.value,
+      role_title:        form.role_title.value.trim(),
+      works_with_dist:   distChecked ? distChecked.value : '',
+      distributor_name:  form.distributor_name?.value?.trim() ?? '',
+      experience:        form.experience.value.trim(),
+      why_applying:      form.why_applying.value.trim(),
     };
 
     const { error } = await supabase
@@ -224,15 +269,15 @@ function initApplyForm() {
       .eq('id', portalUser.id);
 
     if (error) {
-      errorEl.textContent = 'Submission failed. Please try again.';
-      errorEl.classList.add('visible');
+      alertEl.textContent = 'Submission failed. Please try again.';
+      alertEl.className   = 'portal-alert portal-alert-error visible';
       btn.disabled    = false;
       btn.textContent = 'Submit Application';
       return;
     }
 
     await logActivity('tier2_applied', appData);
-    form.style.display = 'none';
+    document.getElementById('applyFormWrap').style.display = 'none';
     const conf = document.getElementById('applyConfirmation');
     if (conf) conf.classList.add('visible');
   });
@@ -380,16 +425,18 @@ function adminViewApp(id, name, notesJson) {
 
   const text = [
     `Applicant: ${name}`,
+    notes.business_name ? `Business: ${notes.business_name}` : '',
+    notes.role_title ? `Role / Title: ${notes.role_title}` : '',
     '',
-    `Experience: ${notes.years_experience} year(s)`,
-    `Install types: ${(notes.install_types||[]).join(', ')||'—'}`,
-    `Dispensers (last 12 mo): ${notes.dispensers_12mo}`,
-    `Works with distributor: ${notes.works_with_dist}`,
+    `Years in industry: ${notes.years_experience || '—'}`,
+    `Works with distributor: ${notes.works_with_dist || '—'}`,
     notes.distributor_name ? `Distributor: ${notes.distributor_name}` : '',
-    `Subscription interest: ${notes.subscription_interest}`,
+    '',
+    'Relevant experience:',
+    notes.experience || '—',
     '',
     'Why applying:',
-    notes.why_applying,
+    notes.why_applying || '—',
   ].filter(Boolean).join('\n');
 
   alert(text);
@@ -425,7 +472,7 @@ async function loadAllUsers() {
 
   tbody.innerHTML = rows.map(u => `
     <tr>
-      <td>${esc(u.full_name)}</td>
+      <td>${esc(u.full_name)}${u.tier2_requested && u.role === 'tier1' ? '<br><span style="color:#B45309;font-size:.72rem;font-weight:600;">Tier 2 pending</span>' : ''}</td>
       <td>${esc(u.company)}</td>
       <td>${esc(u.email)}</td>
       <td>
@@ -442,7 +489,13 @@ async function loadAllUsers() {
       <td style="white-space:nowrap;">${fmtDate(u.created_at)}</td>
       <td style="white-space:nowrap;">${u.last_login ? fmtDate(u.last_login) : '—'}</td>
       <td>
-        <button class="action-btn action-btn-view" onclick="adminViewActivity('${u.id}','${esc(u.full_name)}')">Activity</button>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          ${u.tier2_requested && u.role === 'tier1' ? `
+            <button class="action-btn action-btn-approve" onclick="adminApprove('${u.id}').then(loadAllUsers)">Approve</button>
+            <button class="action-btn action-btn-reject"  onclick="adminReject('${u.id}').then(loadAllUsers)">Reject</button>
+          ` : ''}
+          <button class="action-btn action-btn-view" onclick="adminViewActivity('${u.id}','${esc(u.full_name)}')">Activity</button>
+        </div>
       </td>
     </tr>
   `).join('');
