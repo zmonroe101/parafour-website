@@ -58,12 +58,70 @@ create index if not exists quote_requests_status_idx  on quote_requests(status);
 create index if not exists quote_requests_created_idx on quote_requests(created_at desc);
 
 -- ═══════════════════════════════════════════════════════════
+--  Registration trigger — auto-creates the portal_users row
+--  Without this, supabase.auth.signUp() creates an auth.users row but
+--  NOTHING inserts into portal_users, so new accounts have no profile
+--  (dashboard, admin views, and RLS-gated queries all break for them).
+-- ═══════════════════════════════════════════════════════════
+
+create or replace function public.handle_new_portal_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.portal_users (auth_id, email, full_name, company, phone, tier2_requested, tier2_request_date)
+  values (
+    new.id,
+    new.email,
+    coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1)),
+    coalesce(new.raw_user_meta_data->>'company', ''),
+    new.raw_user_meta_data->>'phone',
+    coalesce((new.raw_user_meta_data->>'tier2_requested')::boolean, false),
+    case when coalesce((new.raw_user_meta_data->>'tier2_requested')::boolean, false)
+         then now() else null end
+  )
+  on conflict (email) do nothing;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.handle_new_portal_user();
+
+-- ═══════════════════════════════════════════════════════════
 --  Row Level Security
 -- ═══════════════════════════════════════════════════════════
 
 alter table portal_users    enable row level security;
 alter table lead_activity   enable row level security;
 alter table quote_requests  enable row level security;
+
+-- ── admin-check helper (avoids RLS self-recursion, see note below) ──
+--
+-- A policy ON portal_users whose USING clause runs
+--   "select 1 from portal_users where ..."
+-- re-triggers portal_users' own RLS while evaluating that subquery,
+-- which re-triggers the same policy, etc. — Postgres detects this and
+-- raises "infinite recursion detected in policy for relation
+-- portal_users", which made every admin-gated query (the whole admin
+-- dashboard) fail. Wrapping the check in a SECURITY DEFINER function
+-- runs the inner lookup as the function owner, bypassing RLS instead
+-- of recursing into it.
+create or replace function public.is_portal_admin(uid uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1 from portal_users where auth_id = uid and role = 'admin'
+  );
+$$;
 
 -- ── portal_users policies ─────────────────────────────────────
 
@@ -85,22 +143,12 @@ create policy "portal_users: self update"
 -- Admins can read all records
 create policy "portal_users: admin select all"
   on portal_users for select
-  using (
-    exists (
-      select 1 from portal_users
-      where auth_id = auth.uid() and role = 'admin'
-    )
-  );
+  using (is_portal_admin(auth.uid()));
 
 -- Admins can update all records (approve/reject/role change)
 create policy "portal_users: admin update all"
   on portal_users for update
-  using (
-    exists (
-      select 1 from portal_users
-      where auth_id = auth.uid() and role = 'admin'
-    )
-  );
+  using (is_portal_admin(auth.uid()));
 
 -- ── lead_activity policies ────────────────────────────────────
 
@@ -122,12 +170,7 @@ create policy "lead_activity: self select"
 
 create policy "lead_activity: admin select all"
   on lead_activity for select
-  using (
-    exists (
-      select 1 from portal_users
-      where auth_id = auth.uid() and role = 'admin'
-    )
-  );
+  using (is_portal_admin(auth.uid()));
 
 -- ── quote_requests policies ───────────────────────────────────
 
@@ -149,9 +192,4 @@ create policy "quote_requests: self select"
 
 create policy "quote_requests: admin all"
   on quote_requests for all
-  using (
-    exists (
-      select 1 from portal_users
-      where auth_id = auth.uid() and role = 'admin'
-    )
-  );
+  using (is_portal_admin(auth.uid()));
