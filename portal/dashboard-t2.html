@@ -192,26 +192,30 @@
   <script src="/js/auth.js"></script>
   <script src="/js/portal.js"></script>
   <script>
-    async function initDashboardT2() {
-      const portalUser = await getPortalUser();
-      if (!portalUser) {
-        window.location.href = '/portal/login.html';
-        return;
-      }
+    async function initDashboardT2(portalUser) {
       await populatePortalNav();
       const nameEl = document.getElementById('welcomeName');
       if (nameEl && portalUser.full_name) {
         nameEl.textContent = portalUser.full_name.split(' ')[0];
       }
-      document.addEventListener('DOMContentLoaded', initQuoteForm);
+      // NOTE: this runs after requireTier()'s network round-trip, well
+      // after DOMContentLoaded has already fired — registering
+      // initQuoteForm on that event here would never actually run it, so
+      // the quote form's submit handler would silently never be attached.
+      // Call it directly instead.
+      initQuoteForm();
       await logActivity('dashboard_t2_view');
     }
 
     (async () => {
+      // requireTier() already handles the "valid session but no
+      // portal_users row" case (signs out + redirects with an error
+      // instead of looping back to /login while still authenticated) —
+      // no need for a second ad-hoc getPortalUser() check here.
       const portalUser = await requireTier('tier2');
       if (!portalUser) return;
       document.body.style.visibility = 'visible';
-      await initDashboardT2();
+      await initDashboardT2(portalUser);
     })();
   </script>
 

@@ -37,12 +37,20 @@
     </div>
 
     <!-- ── Upgrade Banner ── -->
-    <div class="upgrade-banner">
+    <div class="upgrade-banner" id="upgradeBanner">
       <div class="upgrade-banner-text">
         <h3>Unlock Certified Contractor Resources</h3>
         <p>Tier 2 access includes full wiring diagrams, complete technical manuals, AI-assisted diagnostics, and priority support. Apply to upgrade your account.</p>
       </div>
       <a href="/portal/apply.html" class="btn btn-outline-white">Apply for Tier 2</a>
+    </div>
+
+    <!-- ── Application Pending Banner (shown instead, once applied) ── -->
+    <div class="upgrade-banner" id="pendingBanner" style="display:none; background:linear-gradient(135deg, #4B5563, #6B7280);">
+      <div class="upgrade-banner-text">
+        <h3>Tier 2 Application Pending</h3>
+        <p>Your application for Certified Contractor access is under review. Our team typically responds within 2–3 business days.</p>
+      </div>
     </div>
 
     <!-- ── Accessible Resources ── -->
@@ -183,26 +191,44 @@
   <script src="/js/auth.js"></script>
   <script src="/js/portal.js"></script>
   <script>
-    async function initDashboardT1() {
-      const portalUser = await getPortalUser();
-      if (!portalUser) {
-        window.location.href = '/portal/login.html';
-        return;
-      }
+    async function initDashboardT1(portalUser) {
       await populatePortalNav();
       const nameEl = document.getElementById('welcomeName');
       if (nameEl && portalUser.full_name) {
         nameEl.textContent = portalUser.full_name.split(' ')[0];
       }
-      document.addEventListener('DOMContentLoaded', initQuoteForm);
+
+      // Show "Application Pending" instead of the upgrade banner once the
+      // user has already applied for Tier 2.
+      if (portalUser.tier2_requested) {
+        document.getElementById('upgradeBanner').style.display = 'none';
+        document.getElementById('pendingBanner').style.display = 'flex';
+      }
+
+      // NOTE: this runs after requireTier()'s network round-trip, well
+      // after DOMContentLoaded has already fired — registering
+      // initQuoteForm on that event here would never actually run it, so
+      // the quote form's submit handler would silently never be attached.
+      // Call it directly instead.
+      initQuoteForm();
       await logActivity('dashboard_t1_view');
     }
 
     (async () => {
-      const user = await requireAuth();
-      if (!user) return;
+      // requireTier('tier1') accepts any authenticated role and, unlike a
+      // bare requireAuth() + a second ad-hoc getPortalUser() check, it
+      // already handles the case where the session is valid but no
+      // portal_users row exists (signs out + redirects with an error
+      // instead of looping back to /login while still authenticated).
+      const portalUser = await requireTier('tier1');
+      if (!portalUser) return;
+      if (portalUser.role === 'tier2' || portalUser.role === 'admin') {
+        // Certified/admin users belong on the Tier 2 dashboard.
+        window.location.replace('/portal/dashboard-t2.html');
+        return;
+      }
       document.body.style.visibility = 'visible';
-      await initDashboardT1();
+      await initDashboardT1(portalUser);
     })();
   </script>
 

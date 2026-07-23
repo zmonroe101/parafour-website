@@ -16,9 +16,6 @@ window.supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   },
 });
 
-// Admin email allowlist — secondary frontend guard (role field is authoritative)
-const ADMIN_EMAILS = ['zak@parafour.com'];
-
 // ─── getCurrentUser ───────────────────────────────────────────
 async function getCurrentUser() {
   const { data: { session } } = await supabase.auth.getSession();
@@ -57,13 +54,23 @@ async function requireTier(tier, redirectTo) {
 
   const portalUser = await getPortalUser();
   if (!portalUser) {
-    window.location.replace('/portal/login.html');
+    // A valid auth session exists but there is no matching portal_users
+    // row (e.g. an account created before the registration trigger was
+    // installed, or the row was deleted). Previously this just bounced to
+    // /login while leaving the session intact — login.html would then see
+    // the still-valid session, assume role 'tier1', and redirect straight
+    // back to a dashboard, which would land here again: an infinite
+    // redirect loop. Signing out first breaks the cycle for good.
+    await supabase.auth.signOut();
+    window.location.replace('/portal/login.html?error=account_not_found');
     return null;
   }
 
   if (tier === 'admin') {
-    const isAdmin = portalUser.role === 'admin' && ADMIN_EMAILS.includes(user.email);
-    if (!isAdmin) {
+    // role is the sole source of truth — it's protected by RLS (only an
+    // existing admin can promote another user to 'admin'), so no separate
+    // email allowlist is needed here.
+    if (portalUser.role !== 'admin') {
       window.location.replace(redirectTo ?? '/portal/dashboard-t1.html');
       return null;
     }

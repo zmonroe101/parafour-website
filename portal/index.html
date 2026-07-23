@@ -87,8 +87,17 @@
         .select('role')
         .eq('auth_id', session.user.id)
         .maybeSingle();
-      const role = data?.role || 'tier1';
-      if (role === 'tier2' || role === 'admin') {
+      if (!data) {
+        // Session is valid but there's no matching portal_users row.
+        // Defaulting to 'tier1' here used to send the user to a dashboard
+        // that would immediately bounce them back to /login (still logged
+        // in), creating an infinite redirect loop. Clear the orphaned
+        // session instead so the user lands on a stable login screen.
+        await supabase.auth.signOut();
+        window.location.replace('/portal/login.html?error=account_not_found');
+        return;
+      }
+      if (data.role === 'tier2' || data.role === 'admin') {
         window.location.replace('/portal/dashboard-t2.html');
       } else {
         window.location.replace('/portal/dashboard-t1.html');
