@@ -44,12 +44,12 @@
 
         <div class="form-group">
           <label for="apBusiness">Business Name</label>
-          <input type="text" id="apBusiness" required placeholder="Your company's legal business name" />
+          <input type="text" id="apBusiness" name="business_name" required placeholder="Your company's legal business name" />
         </div>
 
         <div class="form-group">
           <label for="apYears">Years in the LPG / Propane Industry</label>
-          <select id="apYears" required>
+          <select id="apYears" name="years_experience" required>
             <option value="">Select range…</option>
             <option value="0-2">Less than 2 years</option>
             <option value="2-5">2–5 years</option>
@@ -60,7 +60,7 @@
 
         <div class="form-group">
           <label for="apRole">Your Role / Title</label>
-          <input type="text" id="apRole" required placeholder="e.g. Service Technician, Install Manager" />
+          <input type="text" id="apRole" name="role_title" required placeholder="e.g. Service Technician, Install Manager" />
         </div>
 
         <div class="form-group">
@@ -79,17 +79,17 @@
 
         <div class="form-group" id="distNameGroup" style="display:none;">
           <label for="apDistName">Distributor Name</label>
-          <input type="text" id="apDistName" placeholder="Name of your Parafour distributor" />
+          <input type="text" id="apDistName" name="distributor_name" placeholder="Name of your Parafour distributor" />
         </div>
 
         <div class="form-group">
           <label for="apExperience">Relevant Experience with LPG Dispensing Equipment</label>
-          <textarea id="apExperience" rows="4" required placeholder="Describe your hands-on experience installing, servicing, or commissioning LPG dispensers or related equipment…"></textarea>
+          <textarea id="apExperience" name="experience" rows="4" required placeholder="Describe your hands-on experience installing, servicing, or commissioning LPG dispensers or related equipment…"></textarea>
         </div>
 
         <div class="form-group">
           <label for="apWhy">Why do you need Tier 2 access?</label>
-          <textarea id="apWhy" rows="3" required placeholder="Tell us what resources you need and how you plan to use them…"></textarea>
+          <textarea id="apWhy" name="why_applying" rows="3" required placeholder="Tell us what resources you need and how you plan to use them…"></textarea>
         </div>
 
         <div class="form-submit">
@@ -122,16 +122,22 @@
         return;
       }
 
-      await populatePortalNav();
-      document.addEventListener('DOMContentLoaded', initApplyForm);
+      if (portalUser.tier2_requested) {
+        // Already applied — show the confirmation state instead of the form.
+        document.getElementById('applyFormWrap').style.display = 'none';
+        document.getElementById('applyConfirmation').classList.add('visible');
+      }
 
-      // Toggle distributor name field
-      document.querySelectorAll('input[name="works_with_dist"]').forEach(radio => {
-        radio.addEventListener('change', () => {
-          const show = document.querySelector('input[name="works_with_dist"]:checked')?.value === 'yes';
-          document.getElementById('distNameGroup').style.display = show ? 'block' : 'none';
-        });
-      });
+      await populatePortalNav();
+
+      // NOTE: this code only runs after the `await requireTier(...)` above
+      // resolves, which is well after the document has finished parsing —
+      // so `document.addEventListener('DOMContentLoaded', initApplyForm)`
+      // here would register the listener too late for the event to ever
+      // fire, silently leaving the form's submit handler (and the
+      // distributor-name toggle it also wires up) unattached. Call it
+      // directly instead.
+      initApplyForm();
     })();
   </script>
 
