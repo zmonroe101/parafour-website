@@ -141,17 +141,20 @@ async function populatePortalNav() {
         <a href="/portal/admin/" class="portal-nav-link">Dashboard</a>
         <a href="/portal/admin/users.html" class="portal-nav-link">Users</a>
         <a href="/portal/dashboard-t2.html" class="portal-nav-link">View T2 Portal</a>
+        <a href="/portal/account.html" class="portal-nav-link">Account</a>
       `;
     } else if (portalUser.role === 'tier2') {
       navEl.innerHTML = `
         <a href="/portal/dashboard-t2.html" class="portal-nav-link">Dashboard</a>
         <a href="/support/p4-series/" class="portal-nav-link">P4 Support</a>
+        <a href="/portal/account.html" class="portal-nav-link">Account</a>
         <a href="/contact/" class="portal-nav-link">Contact</a>
       `;
     } else {
       navEl.innerHTML = `
         <a href="/portal/dashboard-t1.html" class="portal-nav-link">Dashboard</a>
         <a href="/portal/apply.html" class="portal-nav-link">Apply for Tier 2</a>
+        <a href="/portal/account.html" class="portal-nav-link">Account</a>
         <a href="/contact/" class="portal-nav-link">Contact</a>
       `;
     }

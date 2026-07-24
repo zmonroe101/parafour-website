@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Account &amp; Billing — Parafour Customer Portal</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><circle cx='20' cy='20' r='20' fill='%232E7D32'/><text x='20' y='28' text-anchor='middle' fill='white' font-family='Inter,sans-serif' font-size='22' font-weight='800'>4</text></svg>" />
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body class="portal-page" style="visibility:hidden">
+
+  <!-- ── Portal Topbar ── -->
+  <header class="portal-topbar">
+    <div class="portal-topbar-inner">
+      <a href="/portal/" class="portal-logo">
+        <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="20" cy="20" r="20" fill="#2E7D32"/>
+          <text x="20" y="28" text-anchor="middle" fill="white" font-family="Inter,system-ui,sans-serif" font-size="22" font-weight="800">4</text>
+        </svg>
+        Parafour <span class="portal-logo-label">/ Portal</span>
+      </a>
+      <nav id="portalNav" aria-label="Portal navigation"></nav>
+      <div class="portal-topbar-user">
+        <span id="portalUserName"></span>
+        <span id="portalTierBadge" class="tier-badge"></span>
+        <button class="portal-signout" onclick="signOut()">Sign Out</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Content ── -->
+  <div class="portal-content">
+
+    <div class="portal-welcome">
+      <h1>Account &amp; Billing</h1>
+      <p>Manage your subscription plan. Membership plans are separate from your contractor access level.</p>
+    </div>
+
+    <div class="portal-alert" id="billingAlert"></div>
+
+    <!-- ── Current Plan ── -->
+    <div class="portal-section">
+      <div class="portal-section-header">
+        <h2>Current Plan</h2>
+      </div>
+      <div class="account-plan-card">
+        <div class="account-plan-info">
+          <div class="account-plan-name" id="currentPlanName">—</div>
+          <div class="account-plan-price" id="currentPlanPrice"></div>
+          <div class="account-plan-status" id="currentPlanStatus"></div>
+        </div>
+        <button class="btn btn-secondary" id="manageBillingBtn" style="display:none;">Manage Subscription</button>
+      </div>
+    </div>
+
+    <!-- ── Plans ── -->
+    <div class="portal-section">
+      <div class="portal-section-header">
+        <h2>Membership Plans</h2>
+      </div>
+      <div class="pricing-grid" id="pricingGrid">
+        <!-- rendered by billing.js -->
+      </div>
+      <p class="pricing-note">
+        Payments are processed securely by Stripe. You can upgrade, downgrade, or cancel at any time —
+        cancellations keep paid benefits until the end of the current billing period.
+      </p>
+    </div>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/portal.js"></script>
+  <script src="/js/billing.js"></script>
+  <script>
+    (async () => {
+      // Any authenticated role may manage billing — subscription plans
+      // are orthogonal to tier1/tier2/admin.
+      const portalUser = await requireTier('tier1');
+      if (!portalUser) return;
+      document.body.style.visibility = 'visible';
+      await populatePortalNav();
+      // NOTE: called directly, not via DOMContentLoaded — that event has
+      // already fired by the time requireTier()'s await resolves.
+      initAccountPage(portalUser);
+      await logActivity('account_page_view');
+    })();
+  </script>
+
+</body>
+</html>
