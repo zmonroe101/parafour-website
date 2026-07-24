@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Affiliate Dashboard — Parafour Customer Portal</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><circle cx='20' cy='20' r='20' fill='%232E7D32'/><text x='20' y='28' text-anchor='middle' fill='white' font-family='Inter,sans-serif' font-size='22' font-weight='800'>4</text></svg>" />
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body class="portal-page" style="visibility:hidden">
+
+  <!-- ── Portal Topbar ── -->
+  <header class="portal-topbar">
+    <div class="portal-topbar-inner">
+      <a href="/portal/" class="portal-logo">
+        <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="20" cy="20" r="20" fill="#2E7D32"/>
+          <text x="20" y="28" text-anchor="middle" fill="white" font-family="Inter,system-ui,sans-serif" font-size="22" font-weight="800">4</text>
+        </svg>
+        Parafour <span class="portal-logo-label">/ Portal</span>
+      </a>
+      <nav id="portalNav" aria-label="Portal navigation"></nav>
+      <div class="portal-topbar-user">
+        <span id="portalUserName"></span>
+        <span id="portalTierBadge" class="tier-badge"></span>
+        <button class="portal-signout" onclick="signOut()">Sign Out</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Content ── -->
+  <div class="portal-content">
+
+    <div class="portal-welcome">
+      <h1>Affiliate Dashboard</h1>
+      <p>Share your referral link, and earn a 5% commission on every referred sale.</p>
+    </div>
+
+    <div class="portal-alert" id="affiliateAlert"></div>
+
+    <!-- ── Locked state (non-Partner subscribers) ── -->
+    <div id="affiliateLocked" style="display:none;">
+      <div class="upgrade-banner">
+        <div class="upgrade-banner-text">
+          <h3>The Affiliate Program is a Partner benefit</h3>
+          <p>Upgrade to the Partner plan ($99/mo) to generate your referral link, earn 5% commissions on referred sales, and unlock bulk discounts.</p>
+        </div>
+        <a href="/portal/account.html" class="btn btn-outline-white">Upgrade to Partner</a>
+      </div>
+    </div>
+
+    <!-- ── Generate link (Partner, no link yet) ── -->
+    <div id="affiliateGenerate" style="display:none;">
+      <div class="portal-section">
+        <div class="portal-doc-card training-cert-card" style="cursor:default; text-align:center;">
+          <div class="portal-doc-card-icon">🔗</div>
+          <h3>Create Your Affiliate Link</h3>
+          <p>Generate your unique referral code (like <strong>JOHN-ABC123</strong>). Anyone who visits through your link and requests a quote is tracked to you — you earn 5% of the final sale.</p>
+          <button class="btn btn-primary" id="generateLinkBtn" style="margin-top:12px;">Generate My Affiliate Link</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Dashboard (Partner, link exists) ── -->
+    <div id="affiliateDash" style="display:none;">
+
+      <!-- Link card -->
+      <div class="portal-section">
+        <div class="portal-section-header">
+          <h2>Your Referral Link</h2>
+        </div>
+        <div class="account-plan-card">
+          <div class="account-plan-info" style="flex:1; min-width:240px;">
+            <div class="account-plan-name" id="affCode">—</div>
+            <input type="text" id="affUrl" readonly
+                   style="width:100%; margin-top:10px; border:1px solid var(--color-border); border-radius:6px; padding:9px 12px; font-size:.85rem; color:var(--color-text); background:#F9FAFB;" />
+          </div>
+          <button class="btn btn-primary" id="copyLinkBtn">Copy Link</button>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="portal-section">
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-num" id="affEarnings">—</div>
+            <div class="stat-label">Total Earnings</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num" id="affPending">—</div>
+            <div class="stat-label">Pending Payouts</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num" id="affPaid">—</div>
+            <div class="stat-label">Paid Out</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num" id="affClicks">—</div>
+            <div class="stat-label">Link Clicks</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num" id="affConvRate">—</div>
+            <div class="stat-label">Conversion Rate</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Conversions -->
+      <div class="portal-section">
+        <div class="portal-table-wrap">
+          <div class="portal-table-header">
+            <h3>Recent Conversions</h3>
+            <button class="export-btn" id="exportConvBtn">Export CSV</button>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="portal-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Order Amount</th>
+                  <th>Your Commission</th>
+                  <th>Status</th>
+                  <th>Paid</th>
+                </tr>
+              </thead>
+              <tbody id="affConvTbody">
+                <tr><td colspan="5" class="portal-table-empty">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <p class="pricing-note" style="margin-top:12px;">
+          Conversions are recorded when a referred visitor submits a quote request. The order amount (and your 5%
+          commission) is confirmed by the Parafour team when the sale closes — "Awaiting final amount" simply means
+          the deal is still in progress.
+        </p>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/portal.js"></script>
+  <script src="/js/billing.js"></script>
+  <script src="/js/access.js"></script>
+  <script src="/js/affiliate.js"></script>
+  <script>
+    (async () => {
+      // Any role can *reach* the page; the affiliate dashboard itself is
+      // a Partner-subscription feature (admins bypass via hasAccess).
+      const portalUser = await requireTier('tier1');
+      if (!portalUser) return;
+      document.body.style.visibility = 'visible';
+      await populatePortalNav();
+
+      if (!hasAccess(portalUser, 'affiliate_dashboard')) {
+        document.getElementById('affiliateLocked').style.display = 'block';
+        showUpgradePrompt('affiliate_dashboard');
+        return;
+      }
+      // Called directly — NOT via DOMContentLoaded (already fired after
+      // the awaits above).
+      await initAffiliateDashboard(portalUser);
+      await logActivity('affiliate_dashboard_view');
+    })();
+  </script>
+
+</body>
+</html>

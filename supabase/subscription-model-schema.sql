@@ -285,3 +285,134 @@ on conflict (id) do update
       options = excluded.options,
       correct_index = excluded.correct_index,
       order_index = excluded.order_index;
+
+
+-- ═══════════════════════════════════════════════════════════════
+--  4. AFFILIATE SYSTEM
+--  Codes look like FIRSTNAME-ABC123. Clicks are tracked via the
+--  track_affiliate_click() RPC (anon-callable, SECURITY DEFINER).
+--  Conversions are recorded at quote-submission time with amount 0 /
+--  status 'pending'; the REAL order amount is attributed later when
+--  an admin enters the final sale amount on the Metrics page
+--  (adminSetConversionAmount), which recalculates the commission.
+-- ═══════════════════════════════════════════════════════════════
+
+create table if not exists affiliate_links (
+  id               uuid primary key default gen_random_uuid(),
+  user_id          uuid references portal_users(id) on delete cascade,
+  code             text unique not null,
+  clicks           integer default 0,
+  commission_rate  numeric default 0.05 check (commission_rate >= 0 and commission_rate <= 0.5),
+  created_at       timestamptz default now()
+);
+
+create table if not exists affiliate_conversions (
+  id                 uuid primary key default gen_random_uuid(),
+  affiliate_link_id  uuid references affiliate_links(id) on delete cascade,
+  customer_id        uuid,                        -- portal_users.id of the referred customer (nullable)
+  quote_request_id   uuid references quote_requests(id) on delete set null,
+  order_amount       numeric not null default 0,  -- 0 until admin records the final sale amount
+  commission_rate    numeric default 0.05,
+  commission_amount  numeric not null default 0,  -- order_amount * commission_rate
+  status             text default 'pending',      -- pending | paid | cancelled
+  paid_at            timestamptz,
+  notes              text,
+  created_at         timestamptz default now()
+);
+
+create index if not exists affiliate_links_user_idx        on affiliate_links(user_id);
+create index if not exists affiliate_links_code_idx        on affiliate_links(code);
+create index if not exists affiliate_conversions_link_idx  on affiliate_conversions(affiliate_link_id);
+create index if not exists affiliate_conversions_status_idx on affiliate_conversions(status);
+
+-- ── RLS ──────────────────────────────────────────────────────────
+
+alter table affiliate_links       enable row level security;
+alter table affiliate_conversions enable row level security;
+
+-- Owners manage their own link. commission_rate is pinned to the 5%
+-- default on self-insert — only admins may change it afterwards.
+drop policy if exists "affiliate_links: self select" on affiliate_links;
+create policy "affiliate_links: self select"
+  on affiliate_links for select
+  using (user_id in (select id from portal_users where auth_id = auth.uid()));
+
+drop policy if exists "affiliate_links: self insert" on affiliate_links;
+create policy "affiliate_links: self insert"
+  on affiliate_links for insert
+  with check (
+    user_id in (select id from portal_users where auth_id = auth.uid())
+    and coalesce(commission_rate, 0.05) = 0.05
+  );
+
+drop policy if exists "affiliate_links: admin all" on affiliate_links;
+create policy "affiliate_links: admin all"
+  on affiliate_links for all
+  using (is_portal_admin(auth.uid()));
+
+-- Affiliates can read conversions belonging to their own links;
+-- admins have full control (amount attribution, mark paid).
+-- Inserts happen only through the record_affiliate_conversion() RPC.
+drop policy if exists "affiliate_conversions: owner select" on affiliate_conversions;
+create policy "affiliate_conversions: owner select"
+  on affiliate_conversions for select
+  using (
+    affiliate_link_id in (
+      select al.id from affiliate_links al
+      where al.user_id in (select id from portal_users where auth_id = auth.uid())
+    )
+  );
+
+drop policy if exists "affiliate_conversions: admin all" on affiliate_conversions;
+create policy "affiliate_conversions: admin all"
+  on affiliate_conversions for all
+  using (is_portal_admin(auth.uid()));
+
+-- ── RPC: click tracking (anon-callable) ──────────────────────────
+-- SECURITY DEFINER so anonymous visitors landing on ?ref=CODE can
+-- increment the counter without any table-level write access.
+create or replace function public.track_affiliate_click(ref_code text)
+returns void
+language sql
+security definer
+set search_path = public
+as $$
+  update affiliate_links set clicks = clicks + 1 where code = ref_code;
+$$;
+
+grant execute on function public.track_affiliate_click(text) to anon, authenticated;
+
+-- ── RPC: conversion recording ────────────────────────────────────
+-- Called from the quote-request flow when a stored ?ref= code exists.
+-- Skips silently when the code is unknown, when the quote already has
+-- a conversion (dedupe), or on self-referral. order_amount starts at
+-- 0; an admin records the real amount when the sale closes.
+create or replace function public.record_affiliate_conversion(
+  ref_code      text,
+  p_quote_id    uuid default null,
+  p_customer_id uuid default null
+)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into affiliate_conversions
+    (affiliate_link_id, customer_id, quote_request_id, order_amount,
+     commission_rate, commission_amount, status, notes)
+  select al.id, p_customer_id, p_quote_id, 0,
+         coalesce(al.commission_rate, 0.05), 0, 'pending',
+         'Auto-recorded from quote request — awaiting final order amount (set by admin)'
+  from affiliate_links al
+  where al.code = ref_code
+    -- no self-referrals
+    and (p_customer_id is null or al.user_id is distinct from p_customer_id)
+    -- one conversion per quote
+    and (p_quote_id is null or not exists (
+      select 1 from affiliate_conversions ac where ac.quote_request_id = p_quote_id
+    ));
+end;
+$$;
+
+grant execute on function public.record_affiliate_conversion(text, uuid, uuid) to authenticated;

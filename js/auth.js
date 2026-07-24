@@ -145,6 +145,7 @@ async function populatePortalNav() {
       navEl.innerHTML = `
         <a href="/portal/admin/" class="portal-nav-link">Dashboard</a>
         <a href="/portal/admin/users.html" class="portal-nav-link">Users</a>
+        <a href="/portal/admin/metrics.html" class="portal-nav-link">Metrics</a>
         <a href="/portal/dashboard-t2.html" class="portal-nav-link">View T2 Portal</a>
         <a href="/portal/account.html" class="portal-nav-link">Account</a>
       `;
@@ -169,3 +170,31 @@ async function populatePortalNav() {
     });
   }
 }
+
+// ─── Affiliate referral capture (portal pages) ───────────────────
+// Visitors arriving with ?ref=CODE get the code stored in
+// sessionStorage (spec) plus a 30-day cookie fallback, and the click
+// is counted once per browser session via the anon-callable
+// track_affiliate_click() RPC. The same snippet exists in js/main.js
+// for the public site (which doesn't load the Supabase client).
+function getAffiliateRef() {
+  try {
+    const stored = sessionStorage.getItem('parafour_affiliate_ref');
+    if (stored) return stored;
+    const match = document.cookie.match(/(?:^|;\s*)parafour_ref=([^;]+)/);
+    return match ? decodeURIComponent(match[1]) : null;
+  } catch { return null; }
+}
+
+(function captureAffiliateRef() {
+  try {
+    const ref = new URLSearchParams(window.location.search).get('ref');
+    if (!ref || !/^[A-Za-z0-9-]{3,60}$/.test(ref)) return;
+    sessionStorage.setItem('parafour_affiliate_ref', ref);
+    document.cookie = `parafour_ref=${encodeURIComponent(ref)};path=/;max-age=${30 * 86400};SameSite=Lax`;
+    if (!sessionStorage.getItem('parafour_ref_click_tracked')) {
+      sessionStorage.setItem('parafour_ref_click_tracked', '1');
+      supabase.rpc('track_affiliate_click', { ref_code: ref }).then(() => {}, () => {});
+    }
+  } catch { /* non-fatal */ }
+})();

@@ -197,7 +197,7 @@ function initQuoteForm() {
     const user       = await getCurrentUser();
     const portalUser = await getPortalUser();
 
-    const { error } = await supabase.from('quote_requests').insert({
+    const { data: insertedQuote, error } = await supabase.from('quote_requests').insert({
       portal_user_id:   portalUser?.id ?? null,
       name:             portalUser?.full_name ?? '',
       company:          portalUser?.company ?? '',
@@ -208,7 +208,7 @@ function initQuoteForm() {
       distributor:      form.distributor?.value?.trim() ?? null,
       message:          form.message?.value?.trim() ?? '',
       status:           'new',
-    });
+    }).select('id').maybeSingle();
 
     if (error) {
       alertEl.textContent = 'Submission failed. Please email sales@parafour.com directly.';
@@ -217,6 +217,10 @@ function initQuoteForm() {
       alertEl.textContent = 'Quote request submitted — our team will be in touch within 1 business day.';
       alertEl.className   = 'portal-alert portal-alert-success visible';
       await logActivity('quote_requested', { product_interest: form.product_interest?.value });
+      // Affiliate attribution: if this visitor arrived via ?ref=CODE,
+      // record a pending conversion (amount 0 — the admin enters the
+      // real order amount on the Metrics page when the sale closes).
+      await recordAffiliateConversionIfAny(insertedQuote?.id, portalUser?.id);
       form.reset();
     }
     btn.disabled    = false;
@@ -281,6 +285,19 @@ function initApplyForm() {
     const conf = document.getElementById('applyConfirmation');
     if (conf) conf.classList.add('visible');
   });
+}
+
+// ─── Affiliate conversion hook (quote flow) ──────────────────────
+async function recordAffiliateConversionIfAny(quoteId, customerId) {
+  try {
+    const ref = typeof getAffiliateRef === 'function' ? getAffiliateRef() : null;
+    if (!ref || !quoteId) return;
+    await supabase.rpc('record_affiliate_conversion', {
+      ref_code:      ref,
+      p_quote_id:    quoteId,
+      p_customer_id: customerId ?? null,
+    });
+  } catch { /* attribution is best-effort — never block the quote */ }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -523,6 +540,190 @@ async function adminViewActivity(id, name) {
     `${fmtDate(a.created_at)} — ${a.action}${a.metadata ? '\n  ' + JSON.stringify(a.metadata) : ''}`
   );
   alert(`Activity log: ${name}\n\n${lines.join('\n\n')}`);
+}
+
+// ─── Admin: subscription/affiliate/training metrics (metrics.html) ──
+
+async function loadSubscriptionMetrics() {
+  const { data, error } = await supabase
+    .from('portal_users')
+    .select('subscription_tier, subscription_status');
+
+  const banner = document.getElementById('metricsAlert');
+  if (error) {
+    if (banner) {
+      banner.textContent = 'Could not load subscription metrics — has supabase/subscription-model-schema.sql been run against the live database?';
+      banner.className = 'portal-alert portal-alert-error visible';
+    }
+    return;
+  }
+
+  const counts = { free: 0, pro: 0, partner: 0 };
+  (data ?? []).forEach(u => {
+    const tier = u.subscription_tier || 'free';
+    if (counts[tier] === undefined) return;
+    counts[tier]++;
+  });
+  const total   = data?.length ?? 0;
+  const paying  = counts.pro + counts.partner;
+  const mrr     = counts.pro * 29 + counts.partner * 99;
+
+  setText('mSubMrr',        `$${mrr.toLocaleString()}`);
+  setText('mSubTotal',      total);
+  setText('mSubFree',       counts.free);
+  setText('mSubPro',        counts.pro);
+  setText('mSubPartner',    counts.partner);
+  setText('mSubConversion', total ? `${((paying / total) * 100).toFixed(1)}%` : '—');
+  // Churn needs subscription history over time (Stripe dashboard has
+  // it out of the box) — placeholder until a snapshot table exists.
+  setText('mSubChurn', '—');
+}
+
+async function loadTrainingMetrics() {
+  const [{ count: totalUsers }, { data: prog, error }] = await Promise.all([
+    supabase.from('portal_users').select('*', { count: 'exact', head: true }),
+    supabase.from('training_progress').select('user_id, module_id, status').eq('status', 'completed'),
+  ]);
+
+  const wrap = document.getElementById('trainingMetricsBody');
+  if (!wrap) return;
+  if (error) {
+    wrap.innerHTML = '<tr><td colspan="3" class="portal-empty-state">Training tables not found — run subscription-model-schema.sql.</td></tr>';
+    return;
+  }
+
+  const uuids = (typeof TRAINING_MODULE_UUIDS !== 'undefined') ? TRAINING_MODULE_UUIDS : {};
+  const titles = (typeof TRAINING_CONTENT !== 'undefined') ? TRAINING_CONTENT : {};
+  const byUser = {};
+  (prog ?? []).forEach(r => {
+    byUser[r.user_id] = (byUser[r.user_id] ?? 0) + 1;
+  });
+  const certificates = Object.values(byUser).filter(n => n >= 5).length;
+
+  wrap.innerHTML = [1, 2, 3, 4, 5].map(n => {
+    const done = (prog ?? []).filter(r => r.module_id === uuids[n]).length;
+    const pct = totalUsers ? Math.round((done / totalUsers) * 100) : 0;
+    return `
+      <tr>
+        <td>Module ${n} — ${esc(titles[n]?.title ?? '')}</td>
+        <td>${done}</td>
+        <td>${pct}%</td>
+      </tr>`;
+  }).join('') + `
+    <tr style="font-weight:700;">
+      <td>Certificates issued (all 5 complete)</td>
+      <td>${certificates}</td>
+      <td>${totalUsers ? Math.round((certificates / totalUsers) * 100) : 0}%</td>
+    </tr>`;
+}
+
+async function loadAffiliateAdmin() {
+  const [{ data: links, error: linksError }, { data: conversions }, { data: users }] = await Promise.all([
+    supabase.from('affiliate_links').select('*'),
+    supabase.from('affiliate_conversions').select('*').order('created_at', { ascending: false }),
+    supabase.from('portal_users').select('id, full_name, email'),
+  ]);
+
+  const tbody = document.getElementById('affiliateConvTbody');
+  if (linksError) {
+    if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="portal-empty-state">Affiliate tables not found — run subscription-model-schema.sql.</td></tr>';
+    return;
+  }
+
+  const linkById = {};
+  (links ?? []).forEach(l => { linkById[l.id] = l; });
+  const userById = {};
+  (users ?? []).forEach(u => { userById[u.id] = u; });
+
+  const convs = conversions ?? [];
+  const active = convs.filter(c => c.status !== 'cancelled');
+  const totalCommission   = active.reduce((s, c) => s + Number(c.commission_amount || 0), 0);
+  const pendingCommission = convs.filter(c => c.status === 'pending').reduce((s, c) => s + Number(c.commission_amount || 0), 0);
+  const totalClicks = (links ?? []).reduce((s, l) => s + (l.clicks || 0), 0);
+
+  setText('mAffTotal',      `$${totalCommission.toFixed(2)}`);
+  setText('mAffPending',    `$${pendingCommission.toFixed(2)}`);
+  setText('mAffAffiliates', (links ?? []).length);
+  setText('mAffClicks',     totalClicks);
+  setText('mAffConvRate',   totalClicks ? `${((active.length / totalClicks) * 100).toFixed(1)}%` : '—');
+
+  if (!tbody) return;
+  if (!convs.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="portal-empty-state">No conversions recorded yet.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = convs.map(c => {
+    const link = linkById[c.affiliate_link_id];
+    const owner = link ? userById[link.user_id] : null;
+    const rate = Number(c.commission_rate ?? 0.05);
+    return `
+      <tr>
+        <td style="white-space:nowrap;">${fmtDate(c.created_at)}</td>
+        <td>${esc(link?.code ?? '—')}<br><span style="font-size:.72rem;color:#6B7280;">${esc(owner?.full_name ?? '')}</span></td>
+        <td>
+          <input type="number" min="0" step="0.01" class="conv-amount-input" id="convAmount-${c.id}"
+                 value="${Number(c.order_amount || 0)}" ${c.status === 'paid' ? 'disabled' : ''} />
+        </td>
+        <td style="white-space:nowrap;">${(rate * 100).toFixed(0)}%</td>
+        <td style="white-space:nowrap;">$${Number(c.commission_amount || 0).toFixed(2)}</td>
+        <td>${convStatusBadge(c.status)}</td>
+        <td>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            ${c.status === 'pending' ? `
+              <button class="action-btn action-btn-edit"    onclick="adminSetConversionAmount('${c.id}', ${rate})">Save Amount</button>
+              <button class="action-btn action-btn-approve" onclick="adminMarkConversionPaid('${c.id}')">Mark Paid</button>
+              <button class="action-btn action-btn-reject"  onclick="adminCancelConversion('${c.id}')">Cancel</button>
+            ` : (c.paid_at ? `<span style="font-size:.75rem;color:#6B7280;">Paid ${fmtDate(c.paid_at)}</span>` : '')}
+          </div>
+        </td>
+      </tr>`;
+  }).join('');
+}
+
+function convStatusBadge(status) {
+  const map = {
+    pending:   '<span class="training-pill training-pill-progress">Pending</span>',
+    paid:      '<span class="training-pill training-pill-done">Paid</span>',
+    cancelled: '<span class="training-pill training-pill-new">Cancelled</span>',
+  };
+  return map[status] ?? esc(status ?? '');
+}
+
+// Record the real order amount for a conversion once the sale closes —
+// this is where actual commission attribution happens (quotes carry no
+// dollar amount at submission time).
+async function adminSetConversionAmount(id, rate) {
+  const input = document.getElementById(`convAmount-${id}`);
+  const amount = parseFloat(input?.value);
+  if (!Number.isFinite(amount) || amount < 0) { alert('Enter a valid order amount first.'); return; }
+  const commission = Math.round(amount * rate * 100) / 100;
+  const { error } = await supabase
+    .from('affiliate_conversions')
+    .update({ order_amount: amount, commission_amount: commission })
+    .eq('id', id);
+  if (error) alert('Update failed — try again.');
+  else loadAffiliateAdmin();
+}
+
+async function adminMarkConversionPaid(id) {
+  if (!confirm('Mark this commission as paid?')) return;
+  const { error } = await supabase
+    .from('affiliate_conversions')
+    .update({ status: 'paid', paid_at: new Date().toISOString() })
+    .eq('id', id);
+  if (error) alert('Update failed — try again.');
+  else loadAffiliateAdmin();
+}
+
+async function adminCancelConversion(id) {
+  if (!confirm('Cancel this conversion? Its commission will not count toward payouts.')) return;
+  const { error } = await supabase
+    .from('affiliate_conversions')
+    .update({ status: 'cancelled' })
+    .eq('id', id);
+  if (error) alert('Update failed — try again.');
+  else loadAffiliateAdmin();
 }
 
 // ─── CSV Export ───────────────────────────────────────────────
