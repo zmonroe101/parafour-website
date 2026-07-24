@@ -25,14 +25,14 @@
       </button>
       <ul class="nav-links" id="navLinks">
         <li class="nav-dropdown"><a href="/products/">Products</a><ul class="nav-dropdown-menu"><li><a href="/products/accessories/">Accessories &amp; Options</a></li></ul></li>
-        <li><a href="/certifications/">Certifications</a></li>
+        <li class="nav-dropdown"><a href="/certifications/">Certifications</a><ul class="nav-dropdown-menu"><li><a href="/certifications/why-certification-matters/">Why Certification Matters</a></li></ul></li>
         <li><a href="/about/">About</a></li>
-        <li><a href="/support/">Support</a></li>
+        <li class="nav-dropdown"><a href="/support/">Support</a><ul class="nav-dropdown-menu"><li><a href="/support/plans/">Support Plans</a></li><li><a href="/support/p4-series/">P4 Series Support Library</a></li></ul></li>
         <li><a href="/contact/">Contact</a></li>
         <li><a href="/portal/" class="nav-portal-link">Customer Portal</a></li>
-        <li class="nav-mobile-cta"><a href="/contact/" class="btn btn-primary">Request a Quote</a></li>
+        <li class="nav-mobile-cta"><a href="/quote/" class="btn btn-primary">Request a Quote</a></li>
       </ul>
-      <a href="/contact/" class="btn btn-primary btn-sm nav-cta">Request a Quote</a>
+      <a href="/quote/" class="btn btn-primary btn-sm nav-cta">Request a Quote</a>
     </div>
   </nav>
 
@@ -70,6 +70,8 @@
         <span class="cert-chip">UL 1238</span>
         <span class="cert-divider">|</span>
         <span class="cert-chip">UL 508</span>
+        <span class="cert-divider">|</span>
+        <a href="/certifications/why-certification-matters/" class="cert-chip cert-chip-cta">Why Certification Matters →</a>
       </div>
     </div>
 
@@ -84,7 +86,8 @@
 
           <div class="cert-card">
             <div class="cert-card-mark">ETL</div>
-            <div class="cert-card-issuer">Issued by Intertek</div>
+            <!-- TODO: Certification entity has changed per Robin (no longer "InterTech") — update issuer name and link official certificate PDF when received -->
+            <div class="cert-card-issuer">Independent Third-Party Listing</div>
             <h3>ETL Listed</h3>
             <p>The ETL mark certifies that the P4 Series has been independently tested and found to comply with the applicable ANSI/UL product safety standards for LPG dispensing equipment:</p>
             <ul style="margin-top:12px; padding-left:18px; display:flex; flex-direction:column; gap:6px; color:var(--color-text-muted); font-size:.9rem; line-height:1.7;">
@@ -93,6 +96,9 @@
               <li><strong style="color:var(--color-text);">UL 1238</strong> — Control Equipment for Flammable Liquid Dispensing</li>
               <li><strong style="color:var(--color-text);">UL 508</strong> — Industrial Control Equipment</li>
             </ul>
+            <div class="cert-card-actions">
+              <span class="cert-doc-pending">📄 ETL Certificate PDF — coming soon</span>
+            </div>
           </div>
 
           <div class="cert-card">
@@ -100,7 +106,10 @@
             <div class="cert-card-issuer">Category 1 — Highest W&amp;M Designation</div>
             <h3>NTEP Category 1 Certified</h3>
             <p>The National Type Evaluation Program (NTEP) Certificate of Conformance confirms the P4 Series meets the requirements of NIST Handbook 44 for use in commercial transactions. Category 1 is the highest designation available in the United States.</p>
-            <p style="margin-top:12px;">As a Category 1 device, the P4 Series <strong>does not require a mechanical seal</strong>. All calibration and configuration changes are tracked electronically in an event log maintained by the calculator and accessible to any weights-and-measures inspector at any time. Refer to the NTEP Type Certificate for full conformance details.</p>
+            <p style="margin-top:12px;">As a Category 1 device, the P4 Series <strong>does not require a mechanical seal</strong>. All calibration and configuration changes are tracked electronically in an event log maintained by the dispenser computer and accessible to any weights-and-measures inspector at any time. Refer to the NTEP Type Certificate for full conformance details.</p>
+            <div class="cert-card-actions">
+              <span class="cert-doc-pending">📄 NTEP Certificate of Conformance PDF — coming soon</span>
+            </div>
           </div>
 
           <div class="cert-card">
@@ -162,7 +171,7 @@
 
           <div class="standard-item">
             <div class="standard-code">CSA 22.2 #142</div>
-            <div class="standard-desc">Process Control Equipment — applies to the P4 Series electronic calculator and control circuitry used to manage dispensing operations.</div>
+            <div class="standard-desc">Process Control Equipment — applies to the P4 Series dispenser computer and control circuitry used to manage dispensing operations.</div>
           </div>
 
           <div class="standard-item">
