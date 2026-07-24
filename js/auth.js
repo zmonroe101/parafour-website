@@ -133,6 +133,11 @@ async function populatePortalNav() {
       badgeEl.textContent = 'Tier 1';
       badgeEl.className   = 'tier-badge tier-badge-t1';
     }
+    // Subscription badge (Free/Pro/Partner) — orthogonal to the role
+    // badge above. Only rendered on pages that load access.js.
+    if (typeof renderSubscriptionBadge === 'function') {
+      renderSubscriptionBadge(portalUser);
+    }
   }
 
   if (navEl) {

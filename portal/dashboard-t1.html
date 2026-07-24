@@ -136,6 +136,24 @@
       </div>
     </div>
 
+    <!-- ── Member Benefits (subscription-gated, orthogonal to Tier 1/2) ── -->
+    <div class="portal-section">
+      <div class="portal-section-header">
+        <h2>Member Benefits <span style="font-size:.8rem; font-weight:400; color:var(--color-text-muted);">&nbsp;— included with your membership plan</span></h2>
+        <a href="/portal/account.html">Manage Plan →</a>
+      </div>
+      <div class="portal-card-grid" id="benefitsGrid">
+
+        <a href="/contact/" class="portal-doc-card" data-feature="priority_support">
+          <div class="portal-doc-card-icon">🎯</div>
+          <h3>Priority Support</h3>
+          <p>Skip the queue — Pro and Partner members get a guaranteed 1-business-hour response from our technical team.</p>
+          <span class="portal-doc-card-link">Contact Support →</span>
+        </a>
+
+      </div>
+    </div>
+
     <!-- ── Quote Request Form ── -->
     <div class="portal-section">
       <div class="portal-section-header">
@@ -190,8 +208,12 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="/js/auth.js"></script>
   <script src="/js/portal.js"></script>
+  <script src="/js/billing.js"></script>
+  <script src="/js/access.js"></script>
   <script>
     async function initDashboardT1(portalUser) {
+      // Subscription gating (orthogonal to tier1/tier2 role locks).
+      applyFeatureGates(portalUser);
       await populatePortalNav();
       const nameEl = document.getElementById('welcomeName');
       if (nameEl && portalUser.full_name) {
