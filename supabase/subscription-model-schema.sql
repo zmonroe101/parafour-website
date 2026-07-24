@@ -48,12 +48,18 @@ security definer
 set search_path = public
 as $$
 begin
+  -- Direct database access (SQL editor, migrations, dashboard table
+  -- editor) carries no PostgREST JWT — auth.role() is null. That path
+  -- is already fully privileged, so let it through.
+  if auth.role() is null then
+    return new;
+  end if;
   if (new.subscription_tier               is distinct from old.subscription_tier
    or new.stripe_customer_id              is distinct from old.stripe_customer_id
    or new.stripe_subscription_id          is distinct from old.stripe_subscription_id
    or new.subscription_status             is distinct from old.subscription_status
    or new.subscription_current_period_end is distinct from old.subscription_current_period_end) then
-    if not (coalesce(auth.role(), '') = 'service_role' or is_portal_admin(auth.uid())) then
+    if not (auth.role() = 'service_role' or is_portal_admin(auth.uid())) then
       raise exception 'Subscription fields can only be modified by billing webhooks or admins';
     end if;
   end if;

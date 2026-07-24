@@ -117,12 +117,15 @@ function subscriptionToUpdate(env, sub) {
            : 'free';
   // A subscription that is no longer collectible confers no paid access.
   if (['canceled', 'unpaid', 'incomplete_expired'].includes(sub.status)) tier = 'free';
+  // Stripe API versions from 2025-03-31 moved current_period_end onto
+  // the subscription item — support both shapes.
+  const periodEnd = sub.current_period_end ?? sub.items?.data?.[0]?.current_period_end;
   return {
     subscription_tier: tier,
     stripe_subscription_id: sub.id,
     subscription_status: sub.status,
-    subscription_current_period_end: sub.current_period_end
-      ? new Date(sub.current_period_end * 1000).toISOString()
+    subscription_current_period_end: periodEnd
+      ? new Date(periodEnd * 1000).toISOString()
       : null,
   };
 }
