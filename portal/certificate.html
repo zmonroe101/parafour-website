@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Certificate of Completion — Parafour Customer Portal</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><circle cx='20' cy='20' r='20' fill='%232E7D32'/><text x='20' y='28' text-anchor='middle' fill='white' font-family='Inter,sans-serif' font-size='22' font-weight='800'>4</text></svg>" />
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body class="portal-page" style="visibility:hidden">
+
+  <!-- ── Portal Topbar (hidden when printing) ── -->
+  <header class="portal-topbar no-print">
+    <div class="portal-topbar-inner">
+      <a href="/portal/" class="portal-logo">
+        <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="20" cy="20" r="20" fill="#2E7D32"/>
+          <text x="20" y="28" text-anchor="middle" fill="white" font-family="Inter,system-ui,sans-serif" font-size="22" font-weight="800">4</text>
+        </svg>
+        Parafour <span class="portal-logo-label">/ Portal</span>
+      </a>
+      <nav id="portalNav" aria-label="Portal navigation"></nav>
+      <div class="portal-topbar-user">
+        <span id="portalUserName"></span>
+        <span id="portalTierBadge" class="tier-badge"></span>
+        <button class="portal-signout" onclick="signOut()">Sign Out</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Content ── -->
+  <div class="portal-content">
+
+    <div class="portal-welcome no-print">
+      <h1>Certificate of Completion</h1>
+      <p>Congratulations! Use the button below to print your certificate or save it as a PDF (choose "Save as PDF" in the print dialog).</p>
+    </div>
+
+    <div class="cert-actions no-print">
+      <button class="btn btn-primary" id="printCertBtn">🖨 Print / Save as PDF</button>
+      <a href="/portal/training.html" class="btn btn-secondary">Back to Training</a>
+    </div>
+
+    <!-- ── The certificate itself ── -->
+    <div class="certificate" id="certificate">
+      <div class="certificate-border">
+        <div class="certificate-logo">
+          <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <circle cx="20" cy="20" r="20" fill="#2E7D32"/>
+            <text x="20" y="28" text-anchor="middle" fill="white" font-family="Inter,system-ui,sans-serif" font-size="22" font-weight="800">4</text>
+          </svg>
+          <span>Parafour Innovations</span>
+        </div>
+        <div class="certificate-heading">Certificate of Completion</div>
+        <div class="certificate-sub">This certifies that</div>
+        <div class="certificate-name" id="certName">—</div>
+        <div class="certificate-company" id="certCompany"></div>
+        <div class="certificate-body">
+          has successfully completed the <strong>P4 Series LPG Dispenser Intro Training</strong> —
+          all five modules: What to Order, Understanding LPG Dispensers, Installation Basics,
+          Operation &amp; Maintenance, and the Troubleshooting Guide — passing every knowledge check.
+        </div>
+        <div class="certificate-score" id="certScore"></div>
+        <div class="certificate-footer">
+          <div>
+            <div class="certificate-footer-value" id="certDate">—</div>
+            <div class="certificate-footer-label">Date of Completion</div>
+          </div>
+          <div>
+            <div class="certificate-footer-value" id="certId">—</div>
+            <div class="certificate-footer-label">Certificate ID</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/portal.js"></script>
+  <script src="/js/billing.js"></script>
+  <script src="/js/access.js"></script>
+  <script src="/js/training-content.js"></script>
+  <script src="/js/training.js"></script>
+  <script>
+    (async () => {
+      const portalUser = await requireTier('tier1');
+      if (!portalUser) return;
+      document.body.style.visibility = 'visible';
+      await populatePortalNav();
+      // Called directly — NOT via DOMContentLoaded (already fired after
+      // the awaits above).
+      await initCertificatePage(portalUser);
+    })();
+  </script>
+
+</body>
+</html>
