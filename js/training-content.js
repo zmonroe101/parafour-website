@@ -176,7 +176,7 @@ const TRAINING_CONTENT = {
       <ul>
         <li><strong>NFPA 58</strong> — the Liquefied Petroleum Gas Code: governs LPG storage, handling, and dispensing systems in the US.</li>
         <li><strong>NTEP Category 1</strong> — metering certification required to sell by the gallon.</li>
-        <li><strong>ETL / CE / GOST</strong> — electrical and market certifications carried by the P4 Series.</li>
+        <li><strong>MET / CE / GOST</strong> — electrical and market certifications carried by the P4 Series.</li>
       </ul>
 
       <h3>Common misconceptions</h3>
